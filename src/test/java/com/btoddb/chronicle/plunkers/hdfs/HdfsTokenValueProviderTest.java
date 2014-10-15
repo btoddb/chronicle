@@ -2,7 +2,7 @@ package com.btoddb.chronicle.plunkers.hdfs;
 
 /*
  * #%L
- * fast-persistent-queue
+ * chronicle
  * %%
  * Copyright (C) 2014 btoddb.com
  * %%
@@ -26,25 +26,31 @@ package com.btoddb.chronicle.plunkers.hdfs;
  * #L%
  */
 
-
-import org.junit.Test;
+import junit.framework.TestCase;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 
-public class FileUtilsTest {
+public class HdfsTokenValueProviderTest extends TestCase {
+    HdfsTokenValueProvider provider = new HdfsTokenValueProvider();
 
-    @Test
-    public void testInsertTimestampWithExt() {
-        FileUtils fileUtils = new FileUtils();
-        assertThat(fileUtils.insertTimestamp("filename.ext"), is("filename.${provider.timestamp}.ext"));
+    public void testHasValueFor() throws Exception {
+
     }
 
-    @Test
-    public void testInsertTimestampWithoutExt() {
-        FileUtils fileUtils = new FileUtils();
-        assertThat(fileUtils.insertTimestamp("filename"), is("filename.${provider.timestamp}"));
+    public void testGetValue() throws Exception {
+
     }
 
+    public void testGetFromCache() throws Exception {
+        long now = (long) provider.getFromCache("timestamp");
+        assertThat((long) provider.getFromCache("timestamp"), is(now));
+        Thread.sleep(1);
+        assertThat((long) provider.getFromCache("timestamp"), is(now));
+        Thread.sleep(1);
+        assertThat((long) provider.getFromCache("timestamp"), is(now));
+        Thread.sleep(1);
+
+    }
 }

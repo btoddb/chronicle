@@ -28,9 +28,11 @@ package com.btoddb.chronicle.plunkers;
 
 import com.btoddb.chronicle.Config;
 import com.btoddb.chronicle.Event;
+import com.btoddb.chronicle.TokenValueProvider;
 import com.btoddb.chronicle.TokenizedFilePath;
 import com.btoddb.chronicle.Utils;
 import com.btoddb.chronicle.plunkers.hdfs.FileUtils;
+import com.btoddb.chronicle.plunkers.hdfs.HdfsTokenValueProvider;
 import com.btoddb.chronicle.plunkers.hdfs.HdfsWriter;
 import com.btoddb.chronicle.plunkers.hdfs.HdfsWriterFacoryImpl;
 import com.btoddb.chronicle.plunkers.hdfs.HdfsWriterFactory;
@@ -167,11 +169,11 @@ public class HdfsPlunkerImpl extends PlunkerBaseImpl {
 
     private WriterContext retrieveWriter(final Event event) {
         try {
-            return writerCache.get(keyTokenizedFilePath.createFileName(event.getHeaders()), new Callable<WriterContext>() {
+            return writerCache.get(keyTokenizedFilePath.createFileName(event), new Callable<WriterContext>() {
                 @Override
                 public WriterContext call() throws IOException {
-                    String permFileName = permTokenizedFilePath.createFileName(event.getHeaders());
-                    String openFileName = openTokenizedFilePath.createFileName(event.getHeaders());
+                    String permFileName = permTokenizedFilePath.createFileName(event);
+                    String openFileName = openTokenizedFilePath.createFileName(event);
                     HdfsWriter writer = writerFactory.createWriter(permFileName, openFileName);
                     writer.init(config);
                     return new WriterContext(writer);

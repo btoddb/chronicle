@@ -1,8 +1,8 @@
-package com.btoddb.chronicle.plunkers.hdfs;
+package com.btoddb.chronicle;
 
 /*
  * #%L
- * fast-persistent-queue
+ * chronicle
  * %%
  * Copyright (C) 2014 btoddb.com
  * %%
@@ -26,25 +26,11 @@ package com.btoddb.chronicle.plunkers.hdfs;
  * #L%
  */
 
+/**
+ * Created by burrb009 on 10/15/14.
+ */
+public interface TokenValueProvider {
+    boolean hasValueFor(String token);
 
-import org.junit.Test;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-
-
-public class FileUtilsTest {
-
-    @Test
-    public void testInsertTimestampWithExt() {
-        FileUtils fileUtils = new FileUtils();
-        assertThat(fileUtils.insertTimestamp("filename.ext"), is("filename.${provider.timestamp}.ext"));
-    }
-
-    @Test
-    public void testInsertTimestampWithoutExt() {
-        FileUtils fileUtils = new FileUtils();
-        assertThat(fileUtils.insertTimestamp("filename"), is("filename.${provider.timestamp}"));
-    }
-
+    String getValue(String token);
 }

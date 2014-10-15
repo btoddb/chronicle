@@ -83,7 +83,7 @@ public class FilePlunkerImpl extends PlunkerBaseImpl {
     @Override
     protected void handleInternal(Collection<Event> events) throws Exception {
         for (Event event : events) {
-            PrintWriter fw = retrievePrintWriter(tokenizedFilePath.createFileName(event.getHeaders()));
+            PrintWriter fw = retrievePrintWriter(tokenizedFilePath.createFileName(event));
             config.getObjectMapper().writeValue(fw, event);
             fw.println();
             fw.flush();

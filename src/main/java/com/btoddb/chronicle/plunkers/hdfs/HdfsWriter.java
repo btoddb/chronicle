@@ -67,9 +67,9 @@ public class HdfsWriter {
 
         HdfsFileDescriptor desc = new HdfsFileDescriptor();
 
-        Map<String, String> fileNameParams = Collections.singletonMap("timestamp", String.valueOf(System.currentTimeMillis()));
-        desc.setOpenFilename(openTokenizedFilePath.createFileName(fileNameParams));
-        desc.setPermFilename(permTokenizedFilePath.createFileName(fileNameParams));
+        HdfsTokenValueProvider provider = new HdfsTokenValueProvider();
+        desc.setOpenFilename(openTokenizedFilePath.createFileName(provider));
+        desc.setPermFilename(permTokenizedFilePath.createFileName(provider));
 
         Configuration conf = new Configuration();
         Path path = new Path(desc.getOpenFilename());

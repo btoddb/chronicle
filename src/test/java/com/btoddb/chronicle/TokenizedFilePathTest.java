@@ -26,33 +26,36 @@ package com.btoddb.chronicle;
  * #L%
  */
 
+import com.btoddb.chronicle.plunkers.hdfs.HdfsTokenValueProvider;
 import org.junit.Test;
 
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.fail;
 
 
 public class TokenizedFilePathTest {
 
     @Test
     public void testCompileNoTokens() {
-        List<TokenizedFilePath.TokenizingPart> tokenizer = new TokenizedFilePath("this is the string").compileFilePattern();
+        List<TokenizedFilePath.TokenizingPart> tokenizer = new TokenizedFilePath("this is the string").getTokenizedFilename();
         assertThat(tokenizer, hasSize(1));
         assertThat(tokenizer.get(0), is(instanceOf(TokenizedFilePath.StringPart.class)));
         assertThat(tokenizer.get(0).part, is("this is the string"));
     }
 
     @Test
-    public void testCompileWithSingleToken() {
-        List<TokenizedFilePath.TokenizingPart> tokenizer = new TokenizedFilePath("this ${is} the string").compileFilePattern();
+    public void testCompileWithSingleTokenAmongString() {
+        List<TokenizedFilePath.TokenizingPart> tokenizer = new TokenizedFilePath("this ${header.is} the string").getTokenizedFilename();
         assertThat(tokenizer, hasSize(3));
         assertThat(tokenizer.get(0), is(instanceOf(TokenizedFilePath.StringPart.class)));
         assertThat(tokenizer.get(0).part, is("this "));
-        assertThat(tokenizer.get(1), is(instanceOf(TokenizedFilePath.TokenPart.class)));
+        assertThat(tokenizer.get(1), is(instanceOf(TokenizedFilePath.HeaderTokenPart.class)));
         assertThat(tokenizer.get(1).part, is("is"));
         assertThat(tokenizer.get(2), is(instanceOf(TokenizedFilePath.StringPart.class)));
         assertThat(tokenizer.get(2).part, is(" the string"));
@@ -60,49 +63,68 @@ public class TokenizedFilePathTest {
 
     @Test
     public void testCompileWithOnlyAToken() {
-        List<TokenizedFilePath.TokenizingPart> tokenizer = new TokenizedFilePath("${token}").compileFilePattern();
+        List<TokenizedFilePath.TokenizingPart> tokenizer = new TokenizedFilePath("${header.token}").getTokenizedFilename();
         assertThat(tokenizer, hasSize(1));
-        assertThat(tokenizer.get(0), is(instanceOf(TokenizedFilePath.TokenPart.class)));
+        assertThat(tokenizer.get(0), is(instanceOf(TokenizedFilePath.HeaderTokenPart.class)));
+        assertThat(tokenizer.get(0).part, is("token"));
+    }
+
+    @Test
+    public void testCompileWithProvider() {
+        List<TokenizedFilePath.TokenizingPart> tokenizer = new TokenizedFilePath("${provider.token}").getTokenizedFilename();
+        assertThat(tokenizer, hasSize(1));
+        assertThat(tokenizer.get(0), is(instanceOf(TokenizedFilePath.ProviderTokenPart.class)));
         assertThat(tokenizer.get(0).part, is("token"));
     }
 
     @Test
     public void testCreateFileName() throws Exception {
-        TokenizedFilePath tokenizer = new TokenizedFilePath("tmp/${customer}/file");
+        TokenizedFilePath tokenizer = new TokenizedFilePath("tmp/${header.customer}/file");
 
         String path = tokenizer.createFileName(new Event("the-body")
                                                        .withHeader("customer", "the-customer")
-                                                       .withHeader("foo", "bar").getHeaders());
+                                                       .withHeader("foo", "bar"));
 
 
         assertThat(path, is("tmp/the-customer/file"));
     }
 
     @Test
-    public void testCreateFileNameUnknownToken() throws Exception {
-        TokenizedFilePath tokenizer = new TokenizedFilePath("tmp/${customer}/file-${timestamp}");
+    public void testCreateFileNameUnknownProviderToken() throws Exception {
+        TokenizedFilePath tokenizer = new TokenizedFilePath("tmp/${header.customer}/file-${provider.foo-unknown}");
 
         String path = tokenizer.createFileName(new Event("the-body")
                                                        .withHeader("customer", "the-customer")
-                                                       .withHeader("foo", "bar").getHeaders());
+                                                       .withHeader("foo", "bar"),
+                                               new HdfsTokenValueProvider());
 
+        assertThat(path, is("tmp/the-customer/file-${provider.foo-unknown}"));
+    }
 
-        assertThat(path, is("tmp/the-customer/file-${timestamp}"));
+    @Test
+    public void testCreateFileNameUnknownQualifierThrowsException() throws Exception {
+        try {
+            TokenizedFilePath tokenizer = new TokenizedFilePath("tmp/${header.customer}/file-${foo-unknown}");
+            fail("should have thrown " + ChronicleException.class.getSimpleName() + " because of unknown token qualifier");
+        }
+        catch (ChronicleException e) {
+            assertThat(e.getMessage(), containsString("unknown qualifier"));
+        }
     }
 
     @Test
     public void testCompileWithMultipleTokens() {
-        List<TokenizedFilePath.TokenizingPart> tokenizer = new TokenizedFilePath("${this} string ${is} the string ${tokenizer}").compileFilePattern();
+        List<TokenizedFilePath.TokenizingPart> tokenizer = new TokenizedFilePath("${header.this} string ${header.is} the string ${provider.tokenizer}").getTokenizedFilename();
         assertThat(tokenizer, hasSize(5));
-        assertThat(tokenizer.get(0), is(instanceOf(TokenizedFilePath.TokenPart.class)));
+        assertThat(tokenizer.get(0), is(instanceOf(TokenizedFilePath.HeaderTokenPart.class)));
         assertThat(tokenizer.get(0).part, is("this"));
         assertThat(tokenizer.get(1), is(instanceOf(TokenizedFilePath.StringPart.class)));
         assertThat(tokenizer.get(1).part, is(" string "));
-        assertThat(tokenizer.get(2), is(instanceOf(TokenizedFilePath.TokenPart.class)));
+        assertThat(tokenizer.get(2), is(instanceOf(TokenizedFilePath.HeaderTokenPart.class)));
         assertThat(tokenizer.get(2).part, is("is"));
         assertThat(tokenizer.get(3), is(instanceOf(TokenizedFilePath.StringPart.class)));
         assertThat(tokenizer.get(3).part, is(" the string "));
-        assertThat(tokenizer.get(4), is(instanceOf(TokenizedFilePath.TokenPart.class)));
+        assertThat(tokenizer.get(4), is(instanceOf(TokenizedFilePath.ProviderTokenPart.class)));
         assertThat(tokenizer.get(4).part, is("tokenizer"));
     }
 

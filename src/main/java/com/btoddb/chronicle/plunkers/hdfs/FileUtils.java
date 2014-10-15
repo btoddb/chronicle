@@ -46,10 +46,10 @@ public class FileUtils {
     public String insertTimestamp(String fn) {
         int index;
         if (-1 != (index= FilenameUtils.indexOfExtension(fn))) {
-            return fn.substring(0, index) + ".${timestamp}" + fn.substring(index);
+            return fn.substring(0, index) + ".${provider.timestamp}" + fn.substring(index);
         }
         else {
-            return fn + ".${timestamp}";
+            return fn + ".${provider.timestamp}";
         }
     }
 }

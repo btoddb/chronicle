@@ -63,7 +63,7 @@ public class HdfsPlunkerImplIT {
     public void setup() throws Exception {
         baseDir = new File("tmp/" + UUID.randomUUID().toString());
 
-        dirPattern = String.format("%s/the/${customer}/path", baseDir.getPath());
+        dirPattern = String.format("%s/the/${header.customer}/path", baseDir.getPath());
         ftUtils = new FileTestUtils(config);
 
         plunker = new HdfsPlunkerImpl();
@@ -107,7 +107,7 @@ public class HdfsPlunkerImplIT {
                 new Event("the-body").withHeader("msgId", "2").withHeader("customer", "cust-two")
         };
         plunker.setIdleTimeout(1);
-        plunker.setTimeoutCheckPeriod(1);
+        plunker.setTimeoutCheckPeriod(100);
         plunker.init(config);
         plunker.handleInternal(Arrays.asList(events));
 
@@ -125,7 +125,7 @@ public class HdfsPlunkerImplIT {
     public void testNoIdleTimeout() throws Exception {
         plunker.setIdleTimeout(0);
         plunker.setRollPeriod(60);
-        plunker.setTimeoutCheckPeriod(1);
+        plunker.setTimeoutCheckPeriod(100);
         plunker.init(config);
         plunker.handleInternal(Arrays.asList(new Event("the-body").withHeader("msgId", "2").withHeader("customer", "cust-one")));
 
@@ -143,8 +143,13 @@ public class HdfsPlunkerImplIT {
     public void testRollTimeout() throws Exception {
         plunker.setIdleTimeout(0);
         plunker.setRollPeriod(2);
-        plunker.setTimeoutCheckPeriod(1);
+        plunker.setTimeoutCheckPeriod(100);
         plunker.init(config);
+
+//        // must do one first to prime HDFS FileSystem
+//        plunker.handleInternal(Arrays.asList(
+//                    new Event("the-body").withHeader("customer", "cust").withHeader("msgId", String.valueOf(0))
+//        ));
 
         // should take ~2.2 seconds - which forces the writer to roll
         for (int i=0;i < 11;i++) {
@@ -176,13 +181,15 @@ public class HdfsPlunkerImplIT {
         plunker.init(config);
 
         final int sleep = 200;
-        final int maxCount = 100; // 20 seconds at 'sleep' interval should be 10
+        final int maxCount = 100; // 20 seconds at 'sleep' interval should be 10 files
         final AtomicInteger count = new AtomicInteger();
 
+        // do this to prime HDFS FileSystem object - otherwise timing is off
         plunker.handleInternal(Arrays.asList(new Event("the-body").withHeader("customer", "cust").withHeader("msgId", String.valueOf(count.getAndIncrement()))));
 
         ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-        executor.scheduleAtFixedRate(new Runnable() {
+        System.out.println("start");
+        executor.scheduleWithFixedDelay(new Runnable() {
                 @Override
                 public void run() {
                     try {
@@ -206,6 +213,7 @@ public class HdfsPlunkerImplIT {
         executor.awaitTermination(60, TimeUnit.SECONDS);
 
         Thread.sleep(1500);
+
         plunker.shutdown();
 
         Event[] events = new Event[count.get()];

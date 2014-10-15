@@ -32,7 +32,6 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 
 /**
@@ -47,18 +46,33 @@ public class TokenizedFilePath {
         this.tokenizedFilename = compileFilePattern();
     }
 
-    public String createFileName(Map<String, String> valueMap) {
+    public String createFileName(Event event) {
+        return createFileName(event, null);
+    }
+
+    public String createFileName(TokenValueProvider provider) {
+        return createFileName(null, provider);
+    }
+
+    public String createFileName(Event event, TokenValueProvider provider) {
         StringBuilder sb = new StringBuilder();
         for (TokenizingPart part : tokenizedFilename) {
+            // if string, then just append it
             if (part instanceof StringPart) {
                 sb.append(part.part);
             }
+            // if a header part, then lookup in event headers
+            else if (null != event && part instanceof HeaderTokenPart) {
+                sb.append(event.getHeaders().get(part.part));
+            }
             // if key is found in headers, then use it.  otherwise let it be
-            else if (valueMap.containsKey(part.part)) {
-                sb.append(valueMap.get(part.part));
+            else if (null != provider && part instanceof ProviderTokenPart && provider.hasValueFor(part.part)) {
+                sb.append(provider.getValue(part.part));
             }
             else {
                 sb.append("${");
+                sb.append(part.qualifier);
+                sb.append('.');
                 sb.append(part.part);
                 sb.append("}");
             }
@@ -66,7 +80,7 @@ public class TokenizedFilePath {
         return sb.toString();
     }
 
-    List<TokenizingPart> compileFilePattern() {
+    private List<TokenizingPart> compileFilePattern() {
         List<TokenizingPart> compiledList = new ArrayList<>();
 
         int startIndex = 0;
@@ -87,7 +101,16 @@ public class TokenizedFilePath {
                 endIndex = filePattern.indexOf("}", startIndex);
 
                 // replace the token
-                compiledList.add(new TokenPart(filePattern.substring(startIndex, endIndex)));
+                String token = filePattern.substring(startIndex, endIndex);
+                if (token.startsWith("header.")) {
+                    compiledList.add(new HeaderTokenPart(parseTokenFromQualifier(token)));
+                }
+                else if (token.startsWith("provider.")) {
+                    compiledList.add(new ProviderTokenPart(parseTokenFromQualifier(token)));
+                }
+                else {
+                    throw new ChronicleException("unknown qualifier on token, "+token);
+                }
 
                 endIndex++;
             }
@@ -96,6 +119,12 @@ public class TokenizedFilePath {
             }
         }
         return compiledList;
+    }
+
+    private String parseTokenFromQualifier(String token) {
+        // first period only
+        int index = token.indexOf('.');
+        return token.substring(index+1);
     }
 
     public int hashCode() {
@@ -110,11 +139,17 @@ public class TokenizedFilePath {
         return ToStringBuilder.reflectionToString(this);
     }
 
-    // ----------
+    public List<TokenizingPart> getTokenizedFilename() {
+        return tokenizedFilename;
+    }
+
+// ----------
 
     abstract class TokenizingPart {
+        final String qualifier;
         final String part;
-        TokenizingPart(String part) {
+        TokenizingPart(String qualifier, String part) {
+            this.qualifier = qualifier;
             this.part = part;
         }
 
@@ -129,11 +164,10 @@ public class TokenizedFilePath {
         public String toString() {
             return ToStringBuilder.reflectionToString(this);
         }
-
     }
     class StringPart extends TokenizingPart {
         StringPart(String part) {
-            super(part);
+            super("string", part);
         }
 
         public int hashCode() {
@@ -148,9 +182,26 @@ public class TokenizedFilePath {
             return ToStringBuilder.reflectionToString(this);
         }
     }
-    class TokenPart extends TokenizingPart {
-        TokenPart(String part) {
-            super(part);
+    class HeaderTokenPart extends TokenizingPart {
+        HeaderTokenPart(String part) {
+            super("header", part);
+        }
+
+        public int hashCode() {
+            return HashCodeBuilder.reflectionHashCode(this, false);
+        }
+
+        public boolean equals(Object o) {
+            return EqualsBuilder.reflectionEquals(this, o, false);
+        }
+
+        public String toString() {
+            return ToStringBuilder.reflectionToString(this);
+        }
+    }
+    class ProviderTokenPart extends TokenizingPart {
+        ProviderTokenPart(String part) {
+            super("provider", part);
         }
 
         public int hashCode() {
