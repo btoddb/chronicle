@@ -1,0 +1,75 @@
+catchers:
+  error-catcher:
+    catcher: !!com.btoddb.chronicle.catchers.DirectCallCatcherImpl
+      id: error-catcher
+
+  rest-catcher:
+    catcher: !!com.btoddb.chronicle.catchers.RestCatcherImpl
+      bind: 0.0.0.0
+      port: 8083
+    snoopers:
+      timestamp-snooper: !!com.btoddb.chronicle.snoopers.TimestampSnooper
+        headerName: timestamp
+        overwrite: true
+
+routers:
+  rest-to-test: !!com.btoddb.chronicle.routers.OneToOneRouterImpl
+    catcher: rest-catcher
+    plunker: hdfs-plunker
+  default-route: !!com.btoddb.chronicle.routers.ConditionalRouterImpl
+    condition: headers[skipDefaultRouting] = .+ AND body = hello
+    plunker: garbage-plunker
+  error-route: !!com.btoddb.chronicle.routers.OneToOneRouterImpl
+    catcher: errors
+    plunker: error-plunker
+
+#
+# plunkers
+#
+
+plunkers:
+  file-plunker:
+    plunker: !!com.btoddb.chronicle.plunkers.FilePlunkerImpl
+      filePattern: tmp/app/data.out
+    fpq:
+      maxTransactionSize: 2000
+      maxMemorySegmentSizeInBytes: 10000
+      maxJournalFileSize: 10000000
+      maxJournalDurationInMs: 30000
+      flushPeriodInMs: 1000
+      numberOfFlushWorkers: 4
+      journalDirectory: tmp/chronicle/file-plunker/journals
+      pagingDirectory: tmp/chronicle/file-plunker/pages
+
+  hdfs-plunker:
+    plunker: !!com.btoddb.chronicle.plunkers.HdfsPlunkerImpl
+      pathPattern: hdfs://dn7dmphnn01.dcloud.starwave.com:9000/user/tburruss/fpq/${customer}
+      permNamePattern: file.json
+      openNamePattern: _file.json.tmp
+    fpq:
+      maxTransactionSize: 2000
+      maxMemorySegmentSizeInBytes: 10000
+      maxJournalFileSize: 10000000
+      maxJournalDurationInMs: 30000
+      flushPeriodInMs: 1000
+      numberOfFlushWorkers: 4
+      journalDirectory: tmp/chronicle/hdfs-plunker/journals
+      pagingDirectory: tmp/chronicle/hdfs-plunker/pages
+
+  error-plunker:
+    plunker: !!com.btoddb.chronicle.plunkers.FilePlunkerImpl
+      filePattern: tmp/${header.customer}/errors.out
+    fpq:
+      maxTransactionSize: 2000
+      maxMemorySegmentSizeInBytes: 10000
+      maxJournalFileSize: 10000000
+      maxJournalDurationInMs: 30000
+      flushPeriodInMs: 1000
+      numberOfFlushWorkers: 4
+      journalDirectory: tmp/chronicle/error-plunker/journals
+      pagingDirectory: tmp/chronicle/error-plunker/pages
+
+errorHandler: !!com.btoddb.chronicle.ErrorHandlerImpl
+  catcher: errors
+
+stopFile: /tmp/chronicle.stop

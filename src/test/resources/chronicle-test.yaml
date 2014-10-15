@@ -1,0 +1,68 @@
+catchers:
+  error-catcher:
+    catcher: !!com.btoddb.chronicle.catchers.DirectCallCatcherImpl
+      id: error-catcher
+
+  rest-catcher:
+    catcher: !!com.btoddb.chronicle.catchers.RestCatcherImpl
+      bind: 0.0.0.0
+      port: 8083
+    snoopers:
+      timestamp-snooper: !!com.btoddb.chronicle.snoopers.TimestampSnooper
+        headerName: timestamp
+        overwrite: true
+
+routers:
+  rest-to-test: !!com.btoddb.chronicle.routers.OneToOneRouterImpl
+    catcher: rest-catcher
+    plunker: test-plunker
+  default-route: !!com.btoddb.chronicle.routers.ConditionalRouterImpl
+    condition: headers[skipDefaultRouting] = .+ AND body = hello
+    plunker: garbage-plunker
+  error-route: !!com.btoddb.chronicle.routers.OneToOneRouterImpl
+    catcher: error-catcher
+    plunker: error-plunker
+
+# Plunkers are associated with a single FPQ
+plunkers:
+  test-plunker:
+    plunker: !!com.btoddb.chronicle.plunkers.TestPlunkerImpl
+      id: test-plunker
+    fpq:
+      maxTransactionSize: 2000
+      maxMemorySegmentSizeInBytes: 10000000
+      maxJournalFileSize: 10000000
+      maxJournalDurationInMs: 30000
+      flushPeriodInMs: 1000
+      numberOfFlushWorkers: 4
+      journalDirectory: will_be_overriden_by_junit
+      pagingDirectory: will_be_overriden_by_junit
+
+  null-plunker:
+    plunker: !!com.btoddb.chronicle.plunkers.GarbagePlunkerImpl
+      id: null-plunker
+    fpq:
+      maxTransactionSize: 2000
+      maxMemorySegmentSizeInBytes: 10000
+      maxJournalFileSize: 10000000
+      maxJournalDurationInMs: 30000
+      flushPeriodInMs: 1000
+      numberOfFlushWorkers: 4
+      journalDirectory: will_be_overriden_by_junit
+      pagingDirectory: will_be_overriden_by_junit
+
+  error-plunker:
+    plunker: !!com.btoddb.chronicle.plunkers.FilePlunkerImpl
+      filePattern: tmp/${header.customer}/errors.out
+    fpq:
+      maxTransactionSize: 2000
+      maxMemorySegmentSizeInBytes: 10000
+      maxJournalFileSize: 10000000
+      maxJournalDurationInMs: 30000
+      flushPeriodInMs: 1000
+      numberOfFlushWorkers: 4
+      journalDirectory: will_be_overriden_by_junit
+      pagingDirectory: will_be_overriden_by_junit
+
+errorHandler: !!com.btoddb.chronicle.ErrorHandlerImpl
+  catcher: error-catcher
