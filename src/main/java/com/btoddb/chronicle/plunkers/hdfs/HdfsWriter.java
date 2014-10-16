@@ -28,7 +28,7 @@ package com.btoddb.chronicle.plunkers.hdfs;
 
 import com.btoddb.chronicle.Config;
 import com.btoddb.chronicle.Event;
-import com.btoddb.chronicle.TokenizedFilePath;
+import com.btoddb.chronicle.TokenizedFormatter;
 import com.btoddb.chronicle.serializers.EventSerializer;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -36,8 +36,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
@@ -50,8 +48,8 @@ public class HdfsWriter {
     private Config config;
     private EventSerializer serializer;
 
-    private TokenizedFilePath permTokenizedFilePath;
-    private TokenizedFilePath openTokenizedFilePath;
+    private TokenizedFormatter permTokenizedFilePath;
+    private TokenizedFormatter openTokenizedFilePath;
     private String permFilenamePattern;
     private String openFilenamePattern;
 
@@ -62,14 +60,14 @@ public class HdfsWriter {
     public void init(Config config) throws IOException {
         this.config = config;
 
-        this.permTokenizedFilePath = new TokenizedFilePath(permFilenamePattern);
-        this.openTokenizedFilePath = new TokenizedFilePath(openFilenamePattern);
+        this.permTokenizedFilePath = new TokenizedFormatter(permFilenamePattern);
+        this.openTokenizedFilePath = new TokenizedFormatter(openFilenamePattern);
 
         HdfsFileDescriptor desc = new HdfsFileDescriptor();
 
-        HdfsTokenValueProvider provider = new HdfsTokenValueProvider();
-        desc.setOpenFilename(openTokenizedFilePath.createFileName(provider));
-        desc.setPermFilename(permTokenizedFilePath.createFileName(provider));
+        HdfsTokenValueProviderImpl provider = new HdfsTokenValueProviderImpl();
+        desc.setOpenFilename(openTokenizedFilePath.render(provider));
+        desc.setPermFilename(permTokenizedFilePath.render(provider));
 
         Configuration conf = new Configuration();
         Path path = new Path(desc.getOpenFilename());

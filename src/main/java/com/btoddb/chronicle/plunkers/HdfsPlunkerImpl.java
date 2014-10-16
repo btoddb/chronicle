@@ -28,11 +28,9 @@ package com.btoddb.chronicle.plunkers;
 
 import com.btoddb.chronicle.Config;
 import com.btoddb.chronicle.Event;
-import com.btoddb.chronicle.TokenValueProvider;
-import com.btoddb.chronicle.TokenizedFilePath;
+import com.btoddb.chronicle.TokenizedFormatter;
 import com.btoddb.chronicle.Utils;
 import com.btoddb.chronicle.plunkers.hdfs.FileUtils;
-import com.btoddb.chronicle.plunkers.hdfs.HdfsTokenValueProvider;
 import com.btoddb.chronicle.plunkers.hdfs.HdfsWriter;
 import com.btoddb.chronicle.plunkers.hdfs.HdfsWriterFacoryImpl;
 import com.btoddb.chronicle.plunkers.hdfs.HdfsWriterFactory;
@@ -80,9 +78,9 @@ public class HdfsPlunkerImpl extends PlunkerBaseImpl {
     private Cache<String, WriterContext> writerCache;
     private FileUtils fileUtils = new FileUtils();
 
-    private TokenizedFilePath keyTokenizedFilePath; // this is purely for HdfsWriter lookups
-    private TokenizedFilePath permTokenizedFilePath;
-    private TokenizedFilePath openTokenizedFilePath;
+    private TokenizedFormatter keyTokenizedFilePath; // this is purely for HdfsWriter lookups
+    private TokenizedFormatter permTokenizedFilePath;
+    private TokenizedFormatter openTokenizedFilePath;
 
     private ScheduledThreadPoolExecutor idleTimerExec;
     private ScheduledThreadPoolExecutor closeExec;
@@ -169,11 +167,11 @@ public class HdfsPlunkerImpl extends PlunkerBaseImpl {
 
     private WriterContext retrieveWriter(final Event event) {
         try {
-            return writerCache.get(keyTokenizedFilePath.createFileName(event), new Callable<WriterContext>() {
+            return writerCache.get(keyTokenizedFilePath.render(event), new Callable<WriterContext>() {
                 @Override
                 public WriterContext call() throws IOException {
-                    String permFileName = permTokenizedFilePath.createFileName(event);
-                    String openFileName = openTokenizedFilePath.createFileName(event);
+                    String permFileName = permTokenizedFilePath.render(event);
+                    String openFileName = openTokenizedFilePath.render(event);
                     HdfsWriter writer = writerFactory.createWriter(permFileName, openFileName);
                     writer.init(config);
                     return new WriterContext(writer);
@@ -224,9 +222,9 @@ public class HdfsPlunkerImpl extends PlunkerBaseImpl {
     }
 
     void createFilePatterns() {
-        keyTokenizedFilePath = new TokenizedFilePath(fileUtils.concatPath(pathPattern, permNamePattern));
-        permTokenizedFilePath = new TokenizedFilePath(fileUtils.concatPath(pathPattern, fileUtils.insertTimestamp(permNamePattern)));
-        openTokenizedFilePath = new TokenizedFilePath(fileUtils.concatPath(pathPattern, fileUtils.insertTimestamp(openNamePattern)));
+        keyTokenizedFilePath = new TokenizedFormatter(fileUtils.concatPath(pathPattern, permNamePattern));
+        permTokenizedFilePath = new TokenizedFormatter(fileUtils.concatPath(pathPattern, fileUtils.insertTimestamp(permNamePattern)));
+        openTokenizedFilePath = new TokenizedFormatter(fileUtils.concatPath(pathPattern, fileUtils.insertTimestamp(openNamePattern)));
     }
 
     private void createExecutors() {
@@ -406,15 +404,15 @@ public class HdfsPlunkerImpl extends PlunkerBaseImpl {
         this.closeExec = closeExec;
     }
 
-    TokenizedFilePath getPermTokenizedFilePath() {
+    TokenizedFormatter getPermTokenizedFilePath() {
         return permTokenizedFilePath;
     }
 
-    TokenizedFilePath getOpenTokenizedFilePath() {
+    TokenizedFormatter getOpenTokenizedFilePath() {
         return openTokenizedFilePath;
     }
 
-    TokenizedFilePath getKeyTokenizedFilePath() {
+    TokenizedFormatter getKeyTokenizedFilePath() {
         return keyTokenizedFilePath;
     }
 

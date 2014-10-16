@@ -70,7 +70,7 @@ public class FilePlunkerImplTest {
     @Test
     public void testMultipleFileNamesCreated() throws Exception {
         FilePlunkerImpl plunker = new FilePlunkerImpl();
-        plunker.setFilePattern(createFilename("${header.customer}/logs"));
+        plunker.setFilePattern(createFilename("${header:customer}/logs"));
         plunker.init(new Config());
 
         List<Event> eventList = new ArrayList<>();
@@ -95,7 +95,7 @@ public class FilePlunkerImplTest {
     public void testEvictionClose() throws Exception {
         FilePlunkerImpl plunker = new FilePlunkerImpl();
         plunker.setInactiveTimeout(1);
-        plunker.setFilePattern(createFilename("${header.customer}/logs"));
+        plunker.setFilePattern(createFilename("${header:customer}/logs"));
         plunker.init(new Config());
 
         plunker.handleInternal(Collections.singletonList(new Event("one-body").withHeader("customer", "one")));

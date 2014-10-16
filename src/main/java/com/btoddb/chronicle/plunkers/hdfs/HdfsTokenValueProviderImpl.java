@@ -40,23 +40,24 @@ import java.util.concurrent.ExecutionException;
 /**
  *
  */
-public class HdfsTokenValueProvider implements TokenValueProvider {
+public class HdfsTokenValueProviderImpl implements TokenValueProvider {
 //    private static final Logger logger = LoggerFactory.getLogger(HdfsTokenValueProvider.class);
 
+    //TODO:BTB - instead of doing this disjoint way, could use a map and java 8 lambda functions
     private static final Set<String> AVAILABLE_TOKENS = new HashSet<>();
     static {
-        AVAILABLE_TOKENS.add("timestamp");
+        AVAILABLE_TOKENS.add("now");
     }
 
     private Cache<String, Object> values = CacheBuilder.newBuilder().build();
 
     @Override
-    public boolean hasValueFor(String token) {
+    public boolean canRender(String token) {
         return AVAILABLE_TOKENS.contains(token);
     }
 
     @Override
-    public String getValue(final String token) {
+    public String render(final String token) {
         return String.valueOf(getFromCache(token));
     }
 
@@ -66,11 +67,11 @@ public class HdfsTokenValueProvider implements TokenValueProvider {
                 @Override
                 public Object call() throws Exception {
                     switch (key) {
-                        case "timestamp":
+                        case "now":
                             return System.currentTimeMillis();
 
                         default:
-                            throw new ChronicleException(String.format("Unknown token name, '%s' - cannot supply value from provider, %s", key, HdfsTokenValueProvider.class.getName()));
+                            throw new ChronicleException(String.format("Unknown token name, '%s' - cannot supply value from provider, %s", key, HdfsTokenValueProviderImpl.class.getName()));
                     }
                 }
             });

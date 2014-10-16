@@ -28,7 +28,7 @@ package com.btoddb.chronicle.plunkers;
 
 import com.btoddb.chronicle.Config;
 import com.btoddb.chronicle.Event;
-import com.btoddb.chronicle.TokenizedFilePath;
+import com.btoddb.chronicle.TokenizedFormatter;
 import com.btoddb.chronicle.Utils;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -58,7 +58,7 @@ public class FilePlunkerImpl extends PlunkerBaseImpl {
     private int inactiveTimeout = 120;
     private int maxOpenFiles = 100;
 
-    private TokenizedFilePath tokenizedFilePath;
+    private TokenizedFormatter tokenizedFilePath;
 
     Cache<String, PrintWriter> printWriterCache;
 
@@ -66,7 +66,7 @@ public class FilePlunkerImpl extends PlunkerBaseImpl {
     public void init(Config config) throws Exception {
         super.init(config);
 
-        tokenizedFilePath = new TokenizedFilePath(filePattern);
+        tokenizedFilePath = new TokenizedFormatter(filePattern);
 
         printWriterCache = CacheBuilder.newBuilder()
                 .expireAfterAccess(inactiveTimeout, TimeUnit.SECONDS)
@@ -83,7 +83,7 @@ public class FilePlunkerImpl extends PlunkerBaseImpl {
     @Override
     protected void handleInternal(Collection<Event> events) throws Exception {
         for (Event event : events) {
-            PrintWriter fw = retrievePrintWriter(tokenizedFilePath.createFileName(event));
+            PrintWriter fw = retrievePrintWriter(tokenizedFilePath.render(event));
             config.getObjectMapper().writeValue(fw, event);
             fw.println();
             fw.flush();

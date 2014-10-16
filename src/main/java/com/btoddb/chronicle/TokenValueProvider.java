@@ -30,7 +30,7 @@ package com.btoddb.chronicle;
  * Created by burrb009 on 10/15/14.
  */
 public interface TokenValueProvider {
-    boolean hasValueFor(String token);
+    boolean canRender(String token);
 
-    String getValue(String token);
+    String render(String token);
 }

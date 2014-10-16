@@ -63,7 +63,7 @@ public class HdfsPlunkerImplIT {
     public void setup() throws Exception {
         baseDir = new File("tmp/" + UUID.randomUUID().toString());
 
-        dirPattern = String.format("%s/the/${header.customer}/path", baseDir.getPath());
+        dirPattern = String.format("%s/the/${header:customer}/path", baseDir.getPath());
         ftUtils = new FileTestUtils(config);
 
         plunker = new HdfsPlunkerImpl();

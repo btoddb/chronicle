@@ -32,8 +32,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 
-public class HdfsTokenValueProviderTest extends TestCase {
-    HdfsTokenValueProvider provider = new HdfsTokenValueProvider();
+public class HdfsTokenValueProviderImplTest extends TestCase {
+    HdfsTokenValueProviderImpl provider = new HdfsTokenValueProviderImpl();
 
     public void testHasValueFor() throws Exception {
 
@@ -44,12 +44,12 @@ public class HdfsTokenValueProviderTest extends TestCase {
     }
 
     public void testGetFromCache() throws Exception {
-        long now = (long) provider.getFromCache("timestamp");
-        assertThat((long) provider.getFromCache("timestamp"), is(now));
+        long now = (long) provider.getFromCache("now");
+        assertThat((long) provider.getFromCache("now"), is(now));
         Thread.sleep(1);
-        assertThat((long) provider.getFromCache("timestamp"), is(now));
+        assertThat((long) provider.getFromCache("now"), is(now));
         Thread.sleep(1);
-        assertThat((long) provider.getFromCache("timestamp"), is(now));
+        assertThat((long) provider.getFromCache("now"), is(now));
         Thread.sleep(1);
 
     }

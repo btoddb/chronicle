@@ -55,8 +55,8 @@ public class HdfsWriterIT {
 
         writer = new HdfsWriter();
         writer.setSerializer(new JsonSerializerImpl(config));
-        writer.setPermFilenamePattern(new File(baseDir, "file-${provider.timestamp}.avro").getPath());
-        writer.setOpenFilenamePattern(new File(baseDir, "_file-${provider.timestamp}.avro.tmp").getPath());
+        writer.setPermFilenamePattern(new File(baseDir, "file-${provider:now}.avro").getPath());
+        writer.setOpenFilenamePattern(new File(baseDir, "_file-${provider:now}.avro.tmp").getPath());
     }
 
     @After

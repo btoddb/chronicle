@@ -53,7 +53,7 @@ plunkers:
 
   error-plunker:
     plunker: !!com.btoddb.chronicle.plunkers.FilePlunkerImpl
-      filePattern: tmp/${header.customer}/errors.out
+      filePattern: tmp/${header:customer}/errors.out
     fpq:
       maxTransactionSize: 2000
       maxMemorySegmentSizeInBytes: 10000

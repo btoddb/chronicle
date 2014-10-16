@@ -38,13 +38,13 @@ public class FileUtilsTest {
     @Test
     public void testInsertTimestampWithExt() {
         FileUtils fileUtils = new FileUtils();
-        assertThat(fileUtils.insertTimestamp("filename.ext"), is("filename.${provider.timestamp}.ext"));
+        assertThat(fileUtils.insertTimestamp("filename.ext"), is("filename.${provider:now}.ext"));
     }
 
     @Test
     public void testInsertTimestampWithoutExt() {
         FileUtils fileUtils = new FileUtils();
-        assertThat(fileUtils.insertTimestamp("filename"), is("filename.${provider.timestamp}"));
+        assertThat(fileUtils.insertTimestamp("filename"), is("filename.${provider:now}"));
     }
 
 }

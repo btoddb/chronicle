@@ -43,7 +43,7 @@ plunkers:
 
   hdfs-plunker:
     plunker: !!com.btoddb.chronicle.plunkers.HdfsPlunkerImpl
-      pathPattern: hdfs://dn7dmphnn01.dcloud.starwave.com:9000/user/tburruss/fpq/${customer}
+      pathPattern: hdfs://dn7dmphnn01.dcloud.starwave.com:9000/user/tburruss/chronicle/${header:customer}/${header:timestamp:date}
       permNamePattern: file.json
       openNamePattern: _file.json.tmp
     fpq:
@@ -58,7 +58,7 @@ plunkers:
 
   error-plunker:
     plunker: !!com.btoddb.chronicle.plunkers.FilePlunkerImpl
-      filePattern: tmp/${header.customer}/errors.out
+      filePattern: tmp/${header:customer}/errors.out
     fpq:
       maxTransactionSize: 2000
       maxMemorySegmentSizeInBytes: 10000

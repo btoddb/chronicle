@@ -28,7 +28,7 @@ package com.btoddb.chronicle.plunkers;
 
 import com.btoddb.chronicle.Config;
 import com.btoddb.chronicle.Event;
-import com.btoddb.chronicle.plunkers.hdfs.HdfsTokenValueProvider;
+import com.btoddb.chronicle.plunkers.hdfs.HdfsTokenValueProviderImpl;
 import com.btoddb.chronicle.plunkers.hdfs.HdfsWriter;
 import com.btoddb.chronicle.plunkers.hdfs.HdfsWriterFactory;
 import com.btoddb.chronicle.plunkers.hdfs.WriterContext;
@@ -48,12 +48,9 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.Delayed;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -71,7 +68,7 @@ public class HdfsPlunkerImplTest {
         baseDir = new File("tmp/" + UUID.randomUUID().toString());
 
         plunker = new HdfsPlunkerImpl();
-        plunker.setPathPattern(String.format("file://%s/the/${header.customer}/path", baseDir.getPath()));
+        plunker.setPathPattern(String.format("file://%s/the/${header:customer}/path", baseDir.getPath()));
         plunker.setPermNamePattern("file.avro");
         plunker.setOpenNamePattern("_file.avro.tmp");
     }
@@ -88,20 +85,20 @@ public class HdfsPlunkerImplTest {
 
     @Test
     public void testCreateFilePatterns() throws Exception {
-        HdfsTokenValueProvider provider = new HdfsTokenValueProvider();
+        HdfsTokenValueProviderImpl provider = new HdfsTokenValueProviderImpl();
         plunker.init(config);
 
         plunker.createFilePatterns();
 
         String prefix = "file://" + baseDir + "/";
-        assertThat(plunker.getPathPattern(), is(prefix+"the/${header.customer}/path"));
+        assertThat(plunker.getPathPattern(), is(prefix+"the/${header:customer}/path"));
         assertThat(plunker.getPermNamePattern(), is("file.avro"));
         assertThat(plunker.getOpenNamePattern(), is("_file.avro.tmp"));
 
         Event event = new Event("the-body").withHeader("customer", "dsp").withHeader("timestamp", "123");
-        assertThat(plunker.getKeyTokenizedFilePath().createFileName(event, provider), is(prefix + "the/dsp/path/file.avro"));
-        assertThat(plunker.getPermTokenizedFilePath().createFileName(event, provider), is(prefix + "the/dsp/path/file."+provider.getValue("timestamp")+".avro"));
-        assertThat(plunker.getOpenTokenizedFilePath().createFileName(event, provider), is(prefix + "the/dsp/path/_file.avro."+provider.getValue("timestamp")+".tmp"));
+        assertThat(plunker.getKeyTokenizedFilePath().render(event, provider), is(prefix + "the/dsp/path/file.avro"));
+        assertThat(plunker.getPermTokenizedFilePath().render(event, provider), is(prefix + "the/dsp/path/file."+provider.render("now")+".avro"));
+        assertThat(plunker.getOpenTokenizedFilePath().render(event, provider), is(prefix + "the/dsp/path/_file.avro."+provider.render("now")+".tmp"));
     }
 
     @Test
