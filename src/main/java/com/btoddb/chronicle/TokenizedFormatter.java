@@ -29,6 +29,7 @@ package com.btoddb.chronicle;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
@@ -232,7 +233,7 @@ public class TokenizedFormatter {
     }
 
     class HeaderDatePart extends HeaderPart {
-        private final DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd");
+        private final DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd").withZone(DateTimeZone.UTC);
 
         HeaderDatePart(String raw, String header) {
             super(raw, header);

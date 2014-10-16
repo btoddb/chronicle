@@ -100,7 +100,7 @@ public class TokenizedFormatterTest {
                                                .withHeader("foo", "bar"));
 
 
-        assertThat(path, is("tmp/2014-10-15/file"));
+        assertThat(path, is("tmp/2014-10-16/file"));
     }
 
     @Test
