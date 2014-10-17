@@ -28,24 +28,24 @@ package com.btoddb.chronicle.serializers;
 
 import com.btoddb.chronicle.Config;
 import com.btoddb.chronicle.Event;
-import org.apache.hadoop.fs.FSDataOutputStream;
 
 import java.io.IOException;
+import java.io.OutputStream;
 
 
 /**
  *
  */
 public class JsonSerializerImpl implements EventSerializer {
-    Config config;
-    boolean appendNewline = true;
+    private Config config;
+    private boolean appendNewline = true;
 
-    public JsonSerializerImpl(Config config) {
+    public void init(Config config) {
         this.config = config;
     }
 
     @Override
-    public void serialize(FSDataOutputStream outStream, Event event) throws IOException {
+    public void serialize(OutputStream outStream, Event event) throws IOException {
         outStream.write(config.getObjectMapper().writeValueAsBytes(event));
         if (appendNewline) {
             outStream.write('\n');

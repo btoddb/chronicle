@@ -28,10 +28,11 @@ package com.btoddb.chronicle.plunkers;
 
 import com.btoddb.chronicle.Config;
 import com.btoddb.chronicle.Event;
+import com.btoddb.chronicle.plunkers.hdfs.HdfsFile;
+import com.btoddb.chronicle.plunkers.hdfs.HdfsFileContext;
+import com.btoddb.chronicle.plunkers.hdfs.HdfsFileFactory;
+import com.btoddb.chronicle.plunkers.hdfs.HdfsTextFileImpl;
 import com.btoddb.chronicle.plunkers.hdfs.HdfsTokenValueProviderImpl;
-import com.btoddb.chronicle.plunkers.hdfs.HdfsWriter;
-import com.btoddb.chronicle.plunkers.hdfs.HdfsWriterFactory;
-import com.btoddb.chronicle.plunkers.hdfs.WriterContext;
 import mockit.Expectations;
 import mockit.Injectable;
 import mockit.Mocked;
@@ -133,10 +134,10 @@ public class HdfsPlunkerImplTest {
 
     @Test
     public void testInitThenHandleEventThenShutdown(
-            @Mocked final HdfsWriterFactory writerFactory,
+            @Mocked final HdfsFileFactory writerFactory,
             @Injectable final ScheduledThreadPoolExecutor closeExec, // don't want other executors affected
-            @Mocked final WriterContext aContext,
-            @Mocked final HdfsWriter aWriter,
+            @Mocked final HdfsFileContext aContext,
+            @Mocked final HdfsTextFileImpl aFile,
             @Mocked final ScheduledFuture<Void> aFuture
     ) throws Exception {
         final List<Event> events = Arrays.asList(
@@ -146,14 +147,14 @@ public class HdfsPlunkerImplTest {
 
         new NonStrictExpectations() {{
             for (int i=1;i <= 2;i++) {
-                HdfsWriter writer = new HdfsWriter();
-                writer.init(config); times = 1;
-                writer.write(events.get(i - 1)); times = 1;
+                HdfsFile hdfsFile = new HdfsTextFileImpl();
+//                hdfsFile.init(anyString, anyString, (EventSerializer) any); times = 1;
+                hdfsFile.write(events.get(i - 1)); times = 1;
 
-                writerFactory.createWriter(withSubstring("customer" + i), anyString); times = 1; result = writer;
+                writerFactory.createFile(withSubstring("customer" + i), anyString); times = 1; result = hdfsFile;
 
-                WriterContext context = new WriterContext(writer);
-                context.getWriter(); times = 1; result = writer;
+                HdfsFileContext context = new HdfsFileContext(hdfsFile);
+                context.getHdfsFile(); times = 1; result = hdfsFile;
 
                 context.readLock(); times = 1;
                 context.readUnlock(); times = 1;
@@ -162,7 +163,7 @@ public class HdfsPlunkerImplTest {
             }
         }};
 
-        plunker.setWriterFactory(writerFactory);
+        plunker.setHdfsFileFactory(writerFactory);
         plunker.setCloseExec(closeExec);
         plunker.init(config);
         plunker.handleInternal(events);

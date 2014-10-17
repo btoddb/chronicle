@@ -26,29 +26,9 @@ package com.btoddb.chronicle.plunkers.hdfs;
  * #L%
  */
 
-import com.btoddb.chronicle.Config;
-import com.btoddb.chronicle.serializers.EventSerializer;
 
+public interface HdfsFileFactory {
 
-/**
- *
- */
-public class HdfsWriterFacoryImpl implements HdfsWriterFactory {
-    private Config config;
-    private EventSerializer serializer;
+    HdfsFile createFile(String permFilename, String openFilename);
 
-    public HdfsWriterFacoryImpl(Config config, EventSerializer serializer) {
-        this.config = config;
-        this.serializer = serializer;
-    }
-
-    @Override
-    public HdfsWriter createWriter(String permFilename, String openFilename) {
-        // get the tokenized file paths, which themselves will still have tokens (ie  timestamp)
-        final HdfsWriter writer = new HdfsWriter();
-        writer.setSerializer(serializer);
-        writer.setPermFilenamePattern(permFilename);
-        writer.setOpenFilenamePattern(openFilename);
-        return writer;
-    }
 }

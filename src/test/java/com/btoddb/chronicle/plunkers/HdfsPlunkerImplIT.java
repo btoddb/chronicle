@@ -29,8 +29,7 @@ package com.btoddb.chronicle.plunkers;
 import com.btoddb.chronicle.Config;
 import com.btoddb.chronicle.Event;
 import com.btoddb.chronicle.FileTestUtils;
-import com.btoddb.chronicle.plunkers.hdfs.HdfsFileDescriptor;
-import com.btoddb.chronicle.plunkers.hdfs.WriterContext;
+import com.btoddb.chronicle.plunkers.hdfs.HdfsFileContext;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -92,11 +91,9 @@ public class HdfsPlunkerImplIT {
         plunker.handleInternal(Arrays.asList(events));
         plunker.shutdown();
 
-        for (WriterContext context : plunker.getWriters()) {
-            HdfsFileDescriptor desc = context.getWriter().getFileDescriptor();
-
-            assertThat(new File(desc.getPermFilename()), ftUtils.hasCount(1));
-            assertThat(new File(desc.getOpenFilename()), not(ftUtils.exists()));
+        for (HdfsFileContext context : plunker.getFiles()) {
+            assertThat(new File(context.getHdfsFile().getPermFilename()), ftUtils.hasCount(1));
+            assertThat(new File(context.getHdfsFile().getOpenFilename()), not(ftUtils.exists()));
         }
     }
 
@@ -112,11 +109,11 @@ public class HdfsPlunkerImplIT {
         plunker.handleInternal(Arrays.asList(events));
 
         long endTime = System.currentTimeMillis()+5000;
-        while (!plunker.getWriters().isEmpty() && System.currentTimeMillis() < endTime) {
+        while (!plunker.getFiles().isEmpty() && System.currentTimeMillis() < endTime) {
             Thread.sleep(200);
         }
 
-        assertThat(plunker.getWriters(), is(empty()));
+        assertThat(plunker.getFiles(), is(empty()));
 
         plunker.shutdown();
     }
@@ -134,7 +131,7 @@ public class HdfsPlunkerImplIT {
             Thread.sleep(200);
         }
 
-        assertThat(plunker.getWriters(), is(not(empty())));
+        assertThat(plunker.getFiles(), is(not(empty())));
 
         plunker.shutdown();
     }

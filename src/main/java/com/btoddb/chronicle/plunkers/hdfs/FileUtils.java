@@ -43,7 +43,7 @@ public class FileUtils {
         }
     }
 
-    public String insertTimestamp(String fn) {
+    public String insertTimestampPattern(String fn) {
         int index;
         if (-1 != (index= FilenameUtils.indexOfExtension(fn))) {
             return fn.substring(0, index) + ".${provider:now}" + fn.substring(index);

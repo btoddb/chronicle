@@ -30,25 +30,25 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
 /**
- * Maintains state for the {@link com.btoddb.chronicle.plunkers.hdfs.HdfsWriter}.  Keeps the
- * 'non-writer' logic out of the writer.
+ * Maintains state for the {@link com.btoddb.chronicle.plunkers.hdfs.HdfsFile}.  Keeps the
+ * 'non-file' logic out of the file.
  */
-public class WriterContext {
-    private final HdfsWriter writer;
+public class HdfsFileContext {
+    private final HdfsFile hdfsFile;
     private long createTime;
     private volatile long lastAccessTime;
     private volatile boolean active;
 
     private ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
-    public WriterContext(HdfsWriter writer) {
-        this.writer = writer;
+    public HdfsFileContext(HdfsFile hdfsFile) {
+        this.hdfsFile = hdfsFile;
         this.createTime = System.currentTimeMillis();
         this.active = true;
     }
 
-    public HdfsWriter getWriter() {
-        return writer;
+    public HdfsFile getHdfsFile() {
+        return hdfsFile;
     }
 
     public long getLastAccessTime() {

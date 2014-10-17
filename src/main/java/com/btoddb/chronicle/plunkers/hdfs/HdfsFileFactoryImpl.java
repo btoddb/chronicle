@@ -26,11 +26,38 @@ package com.btoddb.chronicle.plunkers.hdfs;
  * #L%
  */
 
+import com.btoddb.chronicle.ChronicleException;
+import com.btoddb.chronicle.Config;
+import com.btoddb.chronicle.serializers.EventSerializer;
+
+
 /**
- * Created by burrb009 on 10/8/14.
+ *
  */
-public interface HdfsWriterFactory {
+public class HdfsFileFactoryImpl implements HdfsFileFactory {
+    private Config config;
+    private Class<EventSerializer> serializerType;
+    private Class<HdfsFile> hdfsFileType;
 
-    HdfsWriter createWriter(String permFilename, String openFilename);
+    public HdfsFileFactoryImpl(Config config, String hdfsFileType, String serializerType) throws ClassNotFoundException {
+        this.config = config;
+        this.hdfsFileType = (Class<HdfsFile>) Class.forName(hdfsFileType);
+        this.serializerType = (Class<EventSerializer>) Class.forName(serializerType);
+    }
 
+    @Override
+    public HdfsFile createFile(String permFilename, String openFilename) throws ChronicleException {
+        try {
+            EventSerializer serializer = serializerType.newInstance();
+            serializer.init(config);
+
+            HdfsFile hf = hdfsFileType.newInstance();
+            hf.init(permFilename, openFilename, serializer);
+
+            return hf;
+        }
+        catch (Exception e) {
+            throw new ChronicleException("exception while creating HdfsFile object", e);
+        }
+    }
 }

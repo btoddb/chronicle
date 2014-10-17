@@ -31,11 +31,12 @@ import com.btoddb.chronicle.Event;
 import com.btoddb.chronicle.TokenizedFormatter;
 import com.btoddb.chronicle.Utils;
 import com.btoddb.chronicle.plunkers.hdfs.FileUtils;
-import com.btoddb.chronicle.plunkers.hdfs.HdfsWriter;
-import com.btoddb.chronicle.plunkers.hdfs.HdfsWriterFacoryImpl;
-import com.btoddb.chronicle.plunkers.hdfs.HdfsWriterFactory;
-import com.btoddb.chronicle.plunkers.hdfs.WriterContext;
-import com.btoddb.chronicle.serializers.EventSerializer;
+import com.btoddb.chronicle.plunkers.hdfs.HdfsFile;
+import com.btoddb.chronicle.plunkers.hdfs.HdfsFileContext;
+import com.btoddb.chronicle.plunkers.hdfs.HdfsFileFactory;
+import com.btoddb.chronicle.plunkers.hdfs.HdfsFileFactoryImpl;
+import com.btoddb.chronicle.plunkers.hdfs.HdfsTextFileImpl;
+import com.btoddb.chronicle.plunkers.hdfs.HdfsTokenValueProviderImpl;
 import com.btoddb.chronicle.serializers.JsonSerializerImpl;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -62,7 +63,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class HdfsPlunkerImpl extends PlunkerBaseImpl {
     private static final Logger logger = LoggerFactory.getLogger(HdfsPlunkerImpl.class);
 
-    private EventSerializer serializer;
+    private String fileType = HdfsTextFileImpl.class.getCanonicalName();
+    private String serializerType = JsonSerializerImpl.class.getCanonicalName();
     private String pathPattern;
     private String permNamePattern;
     private String openNamePattern;
@@ -74,11 +76,10 @@ public class HdfsPlunkerImpl extends PlunkerBaseImpl {
     private long shutdownWaitTimeout = 60; // seconds
     private int timeoutCheckPeriod = 10000; // millis
 
-
-    private Cache<String, WriterContext> writerCache;
+    private Cache<String, HdfsFileContext> fileCache;
     private FileUtils fileUtils = new FileUtils();
 
-    private TokenizedFormatter keyTokenizedFilePath; // this is purely for HdfsWriter lookups
+    private TokenizedFormatter keyTokenizedFilePath; // this is purely for HdfsFile lookups
     private TokenizedFormatter permTokenizedFilePath;
     private TokenizedFormatter openTokenizedFilePath;
 
@@ -87,23 +88,21 @@ public class HdfsPlunkerImpl extends PlunkerBaseImpl {
 
     private AtomicBoolean isShutdown = new AtomicBoolean(false);
     private ReentrantReadWriteLock canHandleRequests = new ReentrantReadWriteLock();
-    private HdfsWriterFactory writerFactory;
+    private HdfsFileFactory hdfsFileFactory;
 
 
     @Override
     public void init(Config config) throws Exception {
         super.init(config);
 
-        if (null == this.serializer) {
-            this.serializer = new JsonSerializerImpl(config);
-        }
-        if (null == this.writerFactory) {
-            this.writerFactory = new HdfsWriterFacoryImpl(config, serializer);
-        }
-
         createExecutors();
         createFilePatterns();
-        createWriterCache();
+        createFileCache();
+
+        if (null == this.hdfsFileFactory) {
+            this.hdfsFileFactory = new HdfsFileFactoryImpl(config, fileType, serializerType);
+        }
+
     }
 
     /**
@@ -123,10 +122,10 @@ public class HdfsPlunkerImpl extends PlunkerBaseImpl {
 
             for (Event event : events) {
                 // TODO:BTB - need some locking here to make sure we get a writer?
-                WriterContext context = retrieveWriter(event);
+                HdfsFileContext context = retrieveHdfsFile(event);
                 context.readLock();
                 try {
-                    context.getWriter().write(event);
+                    context.getHdfsFile().write(event);
                     context.setLastAccessTime(System.currentTimeMillis());
                 }
                 finally {
@@ -141,16 +140,16 @@ public class HdfsPlunkerImpl extends PlunkerBaseImpl {
 
     // closing HDFS files is done on a thread because it can take some time
     // also, if the close operation throws an exception, we try again
-    private void submitClose(final WriterContext context) {
+    private void submitClose(final HdfsFileContext context) {
         closeExec.submit(new Runnable() {
             @Override
             public void run() {
                 try {
                     // writer must handle thread-safe closing
-                    context.getWriter().close();
+                    context.getHdfsFile().close();
                 }
                 catch (IOException e) {
-                    logger.error("exception while closing HdfsWriter - retrying", e);
+                    logger.error("exception while closing HdfsFile - retrying", e);
                     try {
                         Thread.sleep(1000);
                     }
@@ -165,21 +164,22 @@ public class HdfsPlunkerImpl extends PlunkerBaseImpl {
         });
     }
 
-    private WriterContext retrieveWriter(final Event event) {
+    private HdfsFileContext retrieveHdfsFile(final Event event) {
         try {
-            return writerCache.get(keyTokenizedFilePath.render(event), new Callable<WriterContext>() {
+            return fileCache.get(keyTokenizedFilePath.render(event), new Callable<HdfsFileContext>() {
                 @Override
-                public WriterContext call() throws IOException {
-                    String permFileName = permTokenizedFilePath.render(event);
-                    String openFileName = openTokenizedFilePath.render(event);
-                    HdfsWriter writer = writerFactory.createWriter(permFileName, openFileName);
-                    writer.init(config);
-                    return new WriterContext(writer);
+                public HdfsFileContext call() throws IOException {
+                    HdfsTokenValueProviderImpl provider = new HdfsTokenValueProviderImpl();
+                    String permFileName = permTokenizedFilePath.render(event, provider);
+                    String openFileName = openTokenizedFilePath.render(event, provider);
+
+                    HdfsFile hdfsFile = hdfsFileFactory.createFile(permFileName, openFileName);
+                    return new HdfsFileContext(hdfsFile);
                 }
             });
         }
         catch (ExecutionException e) {
-            Utils.logAndThrow(logger, "exception while trying to retrieve PrintWriter from cache", e);
+            Utils.logAndThrow(logger, "exception while trying to retrieve HdfsFile from cache", e);
             return null;
         }
     }
@@ -195,16 +195,16 @@ public class HdfsPlunkerImpl extends PlunkerBaseImpl {
 
         canHandleRequests.writeLock().lock();
         try {
-            closeWritersAndWait();
+            closeFilesAndWait();
         }
         finally {
             canHandleRequests.writeLock().unlock();
         }
     }
 
-    private void closeWritersAndWait() {
-        if (null != writerCache) {
-            for (WriterContext context : writerCache.asMap().values()) {
+    private void closeFilesAndWait() {
+        if (null != fileCache) {
+            for (HdfsFileContext context : fileCache.asMap().values()) {
                 submitClose(context);
             }
         }
@@ -217,14 +217,14 @@ public class HdfsPlunkerImpl extends PlunkerBaseImpl {
             }
         }
         catch (InterruptedException e) {
-            logger.error("exception while waiting for HdfsWriters to clowe", e);
+            logger.error("exception while waiting for HdfsFiles to close", e);
         }
     }
 
     void createFilePatterns() {
         keyTokenizedFilePath = new TokenizedFormatter(fileUtils.concatPath(pathPattern, permNamePattern));
-        permTokenizedFilePath = new TokenizedFormatter(fileUtils.concatPath(pathPattern, fileUtils.insertTimestamp(permNamePattern)));
-        openTokenizedFilePath = new TokenizedFormatter(fileUtils.concatPath(pathPattern, fileUtils.insertTimestamp(openNamePattern)));
+        permTokenizedFilePath = new TokenizedFormatter(fileUtils.concatPath(pathPattern, fileUtils.insertTimestampPattern(permNamePattern)));
+        openTokenizedFilePath = new TokenizedFormatter(fileUtils.concatPath(pathPattern, fileUtils.insertTimestampPattern(openNamePattern)));
     }
 
     private void createExecutors() {
@@ -266,8 +266,8 @@ public class HdfsPlunkerImpl extends PlunkerBaseImpl {
                     // will be reopened as needed when another request comes
                     long rollPeriodCutoff = System.currentTimeMillis()-TimeUnit.SECONDS.toMillis(rollPeriod);
                     long lastAccessCutoff = System.currentTimeMillis()-TimeUnit.SECONDS.toMillis(idleTimeout);
-                    for (String key : writerCache.asMap().keySet()) {
-                        WriterContext context = writerCache.getIfPresent(key);
+                    for (String key : fileCache.asMap().keySet()) {
+                        HdfsFileContext context = fileCache.getIfPresent(key);
                         if (null != context && context.isActive()
                                 // if idle timeout == 0, then don't consider
                                 && (rollPeriodCutoff > context.getCreateTime()
@@ -279,7 +279,7 @@ public class HdfsPlunkerImpl extends PlunkerBaseImpl {
                                 if (context.isActive()) {
                                     context.setActive(false);
                                     // invalidating the cache will cause the writer to be closed
-                                    writerCache.invalidate(key);
+                                    fileCache.invalidate(key);
                                 }
                             }
                             finally {
@@ -292,12 +292,12 @@ public class HdfsPlunkerImpl extends PlunkerBaseImpl {
             timeoutCheckPeriod, timeoutCheckPeriod, TimeUnit.MILLISECONDS); // check periodically if file needs closing
     }
 
-    private void createWriterCache() {
-        writerCache = CacheBuilder.newBuilder()
+    private void createFileCache() {
+        fileCache = CacheBuilder.newBuilder()
                 .maximumSize(maxOpenFiles)
-                .removalListener(new RemovalListener<String, WriterContext>() {
+                .removalListener(new RemovalListener<String, HdfsFileContext>() {
                     @Override
-                    public void onRemoval(RemovalNotification<String, WriterContext> entry) {
+                    public void onRemoval(RemovalNotification<String, HdfsFileContext> entry) {
                         submitClose(entry.getValue());
                     }
                 })
@@ -340,12 +340,12 @@ public class HdfsPlunkerImpl extends PlunkerBaseImpl {
         this.maxOpenFiles = maxOpenFiles;
     }
 
-    public EventSerializer getSerializer() {
-        return serializer;
+    public String getSerializerType() {
+        return serializerType;
     }
 
-    public void setSerializer(EventSerializer serializer) {
-        this.serializer = serializer;
+    public void setSerializerType(String serializerType) {
+        this.serializerType = serializerType;
     }
 
     public long getRollPeriod() {
@@ -356,12 +356,12 @@ public class HdfsPlunkerImpl extends PlunkerBaseImpl {
         this.rollPeriod = rollPeriod;
     }
 
-    public HdfsWriterFactory getWriterFactory() {
-        return writerFactory;
+    public HdfsFileFactory getHdfsFileFactory() {
+        return hdfsFileFactory;
     }
 
-    public void setWriterFactory(HdfsWriterFactory writerFactory) {
-        this.writerFactory = writerFactory;
+    public void setHdfsFileFactory(HdfsFileFactory hdfsFileFactory) {
+        this.hdfsFileFactory = hdfsFileFactory;
     }
 
     public void setRollTimeout(long rollTimeout) {
@@ -424,8 +424,8 @@ public class HdfsPlunkerImpl extends PlunkerBaseImpl {
         this.shutdownWaitTimeout = shutdownWaitTimeout;
     }
 
-    public Collection<WriterContext> getWriters() {
-        return writerCache.asMap().values();
+    public Collection<HdfsFileContext> getFiles() {
+        return fileCache.asMap().values();
     }
 
     public int getTimeoutCheckPeriod() {
@@ -434,5 +434,13 @@ public class HdfsPlunkerImpl extends PlunkerBaseImpl {
 
     public void setTimeoutCheckPeriod(int timeoutCheckPeriod) {
         this.timeoutCheckPeriod = timeoutCheckPeriod;
+    }
+
+    public String getFileType() {
+        return fileType;
+    }
+
+    public void setFileType(String fileType) {
+        this.fileType = fileType;
     }
 }

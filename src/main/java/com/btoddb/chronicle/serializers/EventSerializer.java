@@ -26,10 +26,11 @@ package com.btoddb.chronicle.serializers;
  * #L%
  */
 
+import com.btoddb.chronicle.Config;
 import com.btoddb.chronicle.Event;
-import org.apache.hadoop.fs.FSDataOutputStream;
 
 import java.io.IOException;
+import java.io.OutputStream;
 
 
 /**
@@ -37,5 +38,6 @@ import java.io.IOException;
  * object into a byte stream.
  */
 public interface EventSerializer {
-    void serialize(FSDataOutputStream outStream, Event event) throws IOException;
+    void init(Config config);
+    void serialize(OutputStream outStream, Event event) throws IOException;
 }

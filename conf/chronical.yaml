@@ -43,9 +43,12 @@ plunkers:
 
   hdfs-plunker:
     plunker: !!com.btoddb.chronicle.plunkers.HdfsPlunkerImpl
-      pathPattern: hdfs://dn7dmphnn01.dcloud.starwave.com:9000/user/tburruss/chronicle/${header:customer}/${header:timestamp:date}
+#      pathPattern: hdfs://dn7dmphnn01.dcloud.starwave.com:9000/user/tburruss/chronicle/${header:customer}/${header:timestamp:date}
+      pathPattern: tmp/chronicle/${header:customer}/${header:timestamp:date}
       permNamePattern: file.json
       openNamePattern: _file.json.tmp
+      fileType: com.btoddb.chronicle.plunkers.hdfs.HdfsTextFileImpl
+      serializerType: com.btoddb.chronicle.serializers.JsonSerializerImpl
     fpq:
       maxTransactionSize: 2000
       maxMemorySegmentSizeInBytes: 10000
