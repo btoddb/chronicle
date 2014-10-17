@@ -61,8 +61,8 @@ plunkers:
 
   hdfs-plunker-avro:
     plunker: !!com.btoddb.chronicle.plunkers.HdfsPlunkerImpl
-      pathPattern: hdfs://dn7dmphnn01.dcloud.starwave.com:9000/user/tburruss/chronicle/${header:customer}/${header:timestamp:date}
-#      pathPattern: tmp/chronicle/${header:customer}/${header:timestamp:date}
+#      pathPattern: hdfs://dn7dmphnn01.dcloud.starwave.com:9000/user/tburruss/chronicle/${header:customer}/${header:timestamp:date}
+      pathPattern: tmp/chronicle/hdfs/${header:customer}/${header:timestamp:date}
       permNamePattern: file.avro
       openNamePattern: _file.avro.tmp
       fileType: com.btoddb.chronicle.plunkers.hdfs.HdfsAvroFileImpl
