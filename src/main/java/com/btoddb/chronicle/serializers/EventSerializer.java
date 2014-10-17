@@ -39,5 +39,22 @@ import java.io.OutputStream;
  */
 public interface EventSerializer {
     void init(Config config);
+
+    /**
+     * Preferred method to stream directly to output stream.
+     *
+     * @param outStream
+     * @param event
+     * @throws IOException
+     */
     void serialize(OutputStream outStream, Event event) throws IOException;
+
+    /**
+     * Optional - needed for formats like Avro to convert an {@link com.btoddb.chronicle.Event} to
+     * an object that the underlying file writer can handle.
+     *
+     * @param event
+     * @return Object compatible with respective file writer
+     */
+    Object convert(Event event);
 }

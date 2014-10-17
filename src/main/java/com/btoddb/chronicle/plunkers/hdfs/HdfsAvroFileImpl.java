@@ -6,18 +6,18 @@ import org.apache.avro.Schema;
 import org.apache.avro.file.DataFileWriter;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.io.DatumWriter;
+import org.apache.avro.reflect.ReflectDatumWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 
 /**
  *
  */
-public class HdfsAvroFile extends HdfsFileBaseImpl {
-    private static final Logger logger = LoggerFactory.getLogger(HdfsAvroFile.class);
+public class HdfsAvroFileImpl extends HdfsFileBaseImpl {
+    private static final Logger logger = LoggerFactory.getLogger(HdfsAvroFileImpl.class);
 
     private static final String SCHEMA_JSON = "{" +
             "  \"fields\": [" +
@@ -52,9 +52,10 @@ public class HdfsAvroFile extends HdfsFileBaseImpl {
     public void init(String permFilename, String openFilename, EventSerializer serializer) throws IOException {
         super.init(permFilename, openFilename, serializer);
 
-        DataFileWriter<Object> dataFileWriter = null;
-        DatumWriter<Object> writer = new GenericDatumWriter<Object>();
+        dataFileWriter = null;
+        DatumWriter<Object> writer = new ReflectDatumWriter<>();
         dataFileWriter = new DataFileWriter<Object>(writer);
+
 
         dataFileWriter.setSyncInterval(syncIntervalBytes);
 
@@ -70,6 +71,20 @@ public class HdfsAvroFile extends HdfsFileBaseImpl {
 
     @Override
     public void writeInternal(Event event) throws IOException {
-        dataFileWriter.appendEncoded(ByteBuffer.wrap(event.getBody()));
+        dataFileWriter.append(serializer.convert(event));
     }
+
+    @Override
+    public void close() throws IOException {
+        dataFileWriter.close();
+        super.close();
+    }
+
+    @Override
+    public void flush() throws IOException {
+        // gotta flush DataFileWriter otherwise Avro data will not be written until sync interval is hit
+        dataFileWriter.flush();
+        super.flush();
+    }
+
 }

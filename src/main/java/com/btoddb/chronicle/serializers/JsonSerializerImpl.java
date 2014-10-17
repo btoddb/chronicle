@@ -36,28 +36,12 @@ import java.io.OutputStream;
 /**
  *
  */
-public class JsonSerializerImpl implements EventSerializer {
-    private Config config;
-    private boolean appendNewline = true;
-
-    public void init(Config config) {
-        this.config = config;
-    }
+public class JsonSerializerImpl extends EventSerializerBaseImpl {
 
     @Override
     public void serialize(OutputStream outStream, Event event) throws IOException {
         outStream.write(config.getObjectMapper().writeValueAsBytes(event));
-        if (appendNewline) {
-            outStream.write('\n');
-        }
-    }
-
-    public boolean isAppendNewline() {
-        return appendNewline;
-    }
-
-    public void setAppendNewline(boolean appendNewline) {
-        this.appendNewline = appendNewline;
+        outStream.write('\n');
     }
 
     public Config getConfig() {

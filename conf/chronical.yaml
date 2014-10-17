@@ -15,7 +15,7 @@ catchers:
 routers:
   rest-to-test: !!com.btoddb.chronicle.routers.OneToOneRouterImpl
     catcher: rest-catcher
-    plunker: hdfs-plunker
+    plunker: hdfs-plunker-avro
   default-route: !!com.btoddb.chronicle.routers.ConditionalRouterImpl
     condition: headers[skipDefaultRouting] = .+ AND body = hello
     plunker: garbage-plunker
@@ -41,14 +41,32 @@ plunkers:
       journalDirectory: tmp/chronicle/file-plunker/journals
       pagingDirectory: tmp/chronicle/file-plunker/pages
 
-  hdfs-plunker:
+  hdfs-plunker-text:
     plunker: !!com.btoddb.chronicle.plunkers.HdfsPlunkerImpl
-#      pathPattern: hdfs://dn7dmphnn01.dcloud.starwave.com:9000/user/tburruss/chronicle/${header:customer}/${header:timestamp:date}
-      pathPattern: tmp/chronicle/${header:customer}/${header:timestamp:date}
+      pathPattern: hdfs://dn7dmphnn01.dcloud.starwave.com:9000/user/tburruss/chronicle/${header:customer}/${header:timestamp:date}
+#      pathPattern: tmp/chronicle/${header:customer}/${header:timestamp:date}
       permNamePattern: file.json
       openNamePattern: _file.json.tmp
       fileType: com.btoddb.chronicle.plunkers.hdfs.HdfsTextFileImpl
       serializerType: com.btoddb.chronicle.serializers.JsonSerializerImpl
+    fpq:
+      maxTransactionSize: 2000
+      maxMemorySegmentSizeInBytes: 10000
+      maxJournalFileSize: 10000000
+      maxJournalDurationInMs: 30000
+      flushPeriodInMs: 1000
+      numberOfFlushWorkers: 4
+      journalDirectory: tmp/chronicle/hdfs-plunker/journals
+      pagingDirectory: tmp/chronicle/hdfs-plunker/pages
+
+  hdfs-plunker-avro:
+    plunker: !!com.btoddb.chronicle.plunkers.HdfsPlunkerImpl
+      pathPattern: hdfs://dn7dmphnn01.dcloud.starwave.com:9000/user/tburruss/chronicle/${header:customer}/${header:timestamp:date}
+#      pathPattern: tmp/chronicle/${header:customer}/${header:timestamp:date}
+      permNamePattern: file.avro
+      openNamePattern: _file.avro.tmp
+      fileType: com.btoddb.chronicle.plunkers.hdfs.HdfsAvroFileImpl
+      serializerType: com.btoddb.chronicle.serializers.AvroSerializerImpl
     fpq:
       maxTransactionSize: 2000
       maxMemorySegmentSizeInBytes: 10000
