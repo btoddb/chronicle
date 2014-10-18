@@ -61,13 +61,13 @@ public class EventTest {
     @Test
     public void testSerializeWithStringBody() throws Exception {
         Event event = new Event(Collections.singletonMap("foo", "bar"), "the-body", true);
-        String json = config.getObjectMapper().writeValueAsString(event);
+        String json = new String(config.getEventSerializer().serialize(event));
         assertThat(json, is("{\"headers\":{\"foo\":\"bar\"},\"bodyIsText\":true,\"body\":\"the-body\"}"));
     }
 
     @Test
     public void testDeserializeWithStringBody() throws Exception {
-        Event event = config.getObjectMapper().readValue("{\"headers\":{\"foo\":\"bar\"},\"body\":\"the-body\",\"bodyIsText\":true}", Event.class);
+        Event event = config.getEventSerializer().deserialize("{\"headers\":{\"foo\":\"bar\"},\"body\":\"the-body\",\"bodyIsText\":true}");
         assertThat(event.getBodyAsString(), is("the-body"));
         assertThat(event.getHeaders(), hasEntry("foo", "bar"));
     }
@@ -75,13 +75,13 @@ public class EventTest {
     @Test
     public void testSerializeWithBytesBody() throws Exception {
         Event event = new Event(Collections.singletonMap("foo", "bar"), new byte[] {0,1,2,3});
-        String json = config.getObjectMapper().writeValueAsString(event);
+        String json = new String(config.getEventSerializer().serialize(event));
         assertThat(json, is("{\"headers\":{\"foo\":\"bar\"},\"bodyIsText\":false,\"body\":\"AAECAw==\"}"));
     }
 
     @Test
     public void testDeserializeWithBytesBody() throws Exception {
-        Event event = config.getObjectMapper().readValue("{\"headers\":{\"foo\":\"bar\"},\"body\":\"AAECAw==\",\"bodyIsText\":false}", Event.class);
+        Event event = config.getEventSerializer().deserialize("{\"headers\":{\"foo\":\"bar\"},\"body\":\"AAECAw==\",\"bodyIsText\":false}");
         assertThat(event.getBody(), is(new byte[] {0,1,2,3}));
         assertThat(event.getHeaders(), hasEntry("foo", "bar"));
     }

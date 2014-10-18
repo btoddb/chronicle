@@ -134,7 +134,7 @@ public class HdfsPlunkerImplTest {
 
     @Test
     public void testInitThenHandleEventThenShutdown(
-            @Mocked final HdfsFileFactory writerFactory,
+            @Mocked final HdfsFileFactory fileFactory,
             @Injectable final ScheduledThreadPoolExecutor closeExec, // don't want other executors affected
             @Mocked final HdfsFileContext aContext,
             @Mocked final HdfsTextFileImpl aFile,
@@ -151,19 +151,18 @@ public class HdfsPlunkerImplTest {
 //                hdfsFile.init(anyString, anyString, (EventSerializer) any); times = 1;
                 hdfsFile.write(events.get(i - 1)); times = 1;
 
-                writerFactory.createFile(withSubstring("customer" + i), anyString); times = 1; result = hdfsFile;
+                fileFactory.createFile(withSubstring("customer" + i), anyString); times = 1; result = hdfsFile;
 
                 HdfsFileContext context = new HdfsFileContext(hdfsFile);
                 context.getHdfsFile(); times = 1; result = hdfsFile;
 
                 context.readLock(); times = 1;
                 context.readUnlock(); times = 1;
-
-                closeExec.submit((Runnable) any); times = 2;
             }
+            closeExec.submit((Runnable) any); times = 2;
         }};
 
-        plunker.setHdfsFileFactory(writerFactory);
+        plunker.setFileFactory(fileFactory);
         plunker.setCloseExec(closeExec);
         plunker.init(config);
         plunker.handleInternal(events);

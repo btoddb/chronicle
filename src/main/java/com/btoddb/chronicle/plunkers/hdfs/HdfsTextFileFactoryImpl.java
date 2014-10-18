@@ -1,4 +1,4 @@
-package com.btoddb.chronicle.serializers;
+package com.btoddb.chronicle.plunkers.hdfs;
 
 /*
  * #%L
@@ -26,39 +26,31 @@ package com.btoddb.chronicle.serializers;
  * #L%
  */
 
-import com.btoddb.chronicle.ChronicleException;
-import com.btoddb.chronicle.Event;
+import com.btoddb.chronicle.serializers.AvroSerializerImpl;
+import com.btoddb.chronicle.serializers.EventSerializer;
 
 import java.io.IOException;
-import java.io.OutputStream;
 
 
 /**
  *
  */
-public abstract class EventSerializerBaseImpl implements EventSerializer {
+public class HdfsTextFileFactoryImpl implements HdfsFileFactory {
+    private EventSerializer serializer;
 
-
-    /**
-     * Throws {@link com.btoddb.chronicle.ChronicleException} claiming unsupported.
-     *
-     * @param outputStream
-     * @param event
-     * @return nothing
-     */
     @Override
-    public void serialize(OutputStream outputStream, Event event) throws IOException {
-        throw new ChronicleException("Unsupported operation for this serializer, " + getClass().getName());
+    public HdfsFile createFile(String permFilename, String openFilename) throws IOException {
+        HdfsTextFileImpl hdfsFile = new HdfsTextFileImpl();
+        hdfsFile.setSerializer(serializer);
+        hdfsFile.init(permFilename, openFilename);
+        return hdfsFile;
     }
 
-    /**
-     * Throws {@link com.btoddb.chronicle.ChronicleException} claiming unsupported.
-     *
-     * @param event
-     * @return nothing
-     */
-    @Override
-    public Object convert(Event event) {
-        throw new ChronicleException("Unsupported operation for this serializer, " + getClass().getName());
+    public EventSerializer getSerializer() {
+        return serializer;
+    }
+
+    public void setSerializer(EventSerializer serializer) {
+        this.serializer = serializer;
     }
 }

@@ -1,7 +1,6 @@
 catchers:
   error-catcher:
     catcher: !!com.btoddb.chronicle.catchers.DirectCallCatcherImpl
-      id: error-catcher
 
   rest-catcher:
     catcher: !!com.btoddb.chronicle.catchers.RestCatcherImpl
@@ -23,7 +22,10 @@ routers:
     catcher: error-catcher
     plunker: error-plunker
 
-# Plunkers are associated with a single FPQ
+#
+# plunkers
+#
+
 plunkers:
   test-plunker:
     plunker: !!com.btoddb.chronicle.plunkers.TestPlunkerImpl
@@ -31,19 +33,6 @@ plunkers:
     fpq:
       maxTransactionSize: 2000
       maxMemorySegmentSizeInBytes: 10000000
-      maxJournalFileSize: 10000000
-      maxJournalDurationInMs: 30000
-      flushPeriodInMs: 1000
-      numberOfFlushWorkers: 4
-      journalDirectory: will_be_overriden_by_junit
-      pagingDirectory: will_be_overriden_by_junit
-
-  null-plunker:
-    plunker: !!com.btoddb.chronicle.plunkers.GarbagePlunkerImpl
-      id: null-plunker
-    fpq:
-      maxTransactionSize: 2000
-      maxMemorySegmentSizeInBytes: 10000
       maxJournalFileSize: 10000000
       maxJournalDurationInMs: 30000
       flushPeriodInMs: 1000

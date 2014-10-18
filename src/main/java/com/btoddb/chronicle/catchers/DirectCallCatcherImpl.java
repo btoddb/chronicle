@@ -41,6 +41,11 @@ import java.util.Collection;
 public class DirectCallCatcherImpl extends CatcherBaseImpl implements Catcher, DirectCallCatcher {
     private static final Logger logger = LoggerFactory.getLogger(DirectCallCatcherImpl.class);
 
+
+    // this constructor is to get around what seems to be a problem with SnakeYaml wanting a single arg constructor
+    public DirectCallCatcherImpl() {}
+    public DirectCallCatcherImpl(String dummy) {}
+
     @Override
     public void init(Config config) throws Exception {
         super.init(config);

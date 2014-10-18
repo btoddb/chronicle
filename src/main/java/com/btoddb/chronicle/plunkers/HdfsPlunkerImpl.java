@@ -34,8 +34,7 @@ import com.btoddb.chronicle.plunkers.hdfs.FileUtils;
 import com.btoddb.chronicle.plunkers.hdfs.HdfsFile;
 import com.btoddb.chronicle.plunkers.hdfs.HdfsFileContext;
 import com.btoddb.chronicle.plunkers.hdfs.HdfsFileFactory;
-import com.btoddb.chronicle.plunkers.hdfs.HdfsFileFactoryImpl;
-import com.btoddb.chronicle.plunkers.hdfs.HdfsTextFileImpl;
+import com.btoddb.chronicle.plunkers.hdfs.HdfsTextFileFactoryImpl;
 import com.btoddb.chronicle.plunkers.hdfs.HdfsTokenValueProviderImpl;
 import com.btoddb.chronicle.serializers.JsonSerializerImpl;
 import com.google.common.cache.Cache;
@@ -63,8 +62,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class HdfsPlunkerImpl extends PlunkerBaseImpl {
     private static final Logger logger = LoggerFactory.getLogger(HdfsPlunkerImpl.class);
 
-    private String fileType = HdfsTextFileImpl.class.getCanonicalName();
-    private String serializerType = JsonSerializerImpl.class.getCanonicalName();
     private String pathPattern;
     private String permNamePattern;
     private String openNamePattern;
@@ -88,7 +85,7 @@ public class HdfsPlunkerImpl extends PlunkerBaseImpl {
 
     private AtomicBoolean isShutdown = new AtomicBoolean(false);
     private ReentrantReadWriteLock canHandleRequests = new ReentrantReadWriteLock();
-    private HdfsFileFactory hdfsFileFactory;
+    private HdfsFileFactory fileFactory;
 
 
     @Override
@@ -99,8 +96,11 @@ public class HdfsPlunkerImpl extends PlunkerBaseImpl {
         createFilePatterns();
         createFileCache();
 
-        if (null == this.hdfsFileFactory) {
-            this.hdfsFileFactory = new HdfsFileFactoryImpl(config, fileType, serializerType);
+        if (null == this.fileFactory) {
+            JsonSerializerImpl serializer = config.getEventSerializer();
+            HdfsTextFileFactoryImpl tmp = new HdfsTextFileFactoryImpl();
+            tmp.setSerializer(serializer);
+            this.fileFactory = tmp;
         }
 
     }
@@ -173,7 +173,7 @@ public class HdfsPlunkerImpl extends PlunkerBaseImpl {
                     String permFileName = permTokenizedFilePath.render(event, provider);
                     String openFileName = openTokenizedFilePath.render(event, provider);
 
-                    HdfsFile hdfsFile = hdfsFileFactory.createFile(permFileName, openFileName);
+                    HdfsFile hdfsFile = fileFactory.createFile(permFileName, openFileName);
                     return new HdfsFileContext(hdfsFile);
                 }
             });
@@ -340,28 +340,12 @@ public class HdfsPlunkerImpl extends PlunkerBaseImpl {
         this.maxOpenFiles = maxOpenFiles;
     }
 
-    public String getSerializerType() {
-        return serializerType;
-    }
-
-    public void setSerializerType(String serializerType) {
-        this.serializerType = serializerType;
-    }
-
     public long getRollPeriod() {
         return rollPeriod;
     }
 
     public void setRollPeriod(int rollPeriod) {
         this.rollPeriod = rollPeriod;
-    }
-
-    public HdfsFileFactory getHdfsFileFactory() {
-        return hdfsFileFactory;
-    }
-
-    public void setHdfsFileFactory(HdfsFileFactory hdfsFileFactory) {
-        this.hdfsFileFactory = hdfsFileFactory;
     }
 
     public void setRollTimeout(long rollTimeout) {
@@ -436,11 +420,11 @@ public class HdfsPlunkerImpl extends PlunkerBaseImpl {
         this.timeoutCheckPeriod = timeoutCheckPeriod;
     }
 
-    public String getFileType() {
-        return fileType;
+    public HdfsFileFactory getFileFactory() {
+        return fileFactory;
     }
 
-    public void setFileType(String fileType) {
-        this.fileType = fileType;
+    public void setFileFactory(HdfsFileFactory fileFactory) {
+        this.fileFactory = fileFactory;
     }
 }

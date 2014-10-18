@@ -87,7 +87,7 @@ public class PlunkerRunner implements ChronicleComponent, FpqBatchCallback {
         fpq.beginTransaction();
         try {
             for (Event event : events) {
-                fpq.push(config.getObjectMapper().writeValueAsBytes(event));
+                fpq.push(config.getEventSerializer().serialize(event));
             }
             fpq.commit();
         }
@@ -105,7 +105,7 @@ public class PlunkerRunner implements ChronicleComponent, FpqBatchCallback {
     public void available(Collection<FpqEntry> entries) throws Exception {
         List<Event> eventList = new ArrayList<>(entries.size());
         for (FpqEntry entry : entries) {
-            Event event = config.getObjectMapper().readValue(entry.getData(), Event.class);
+            Event event = config.getEventSerializer().deserialize(entry.getData());
             eventList.add(event);
         }
 

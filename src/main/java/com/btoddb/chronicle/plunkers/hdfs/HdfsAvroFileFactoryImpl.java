@@ -2,7 +2,7 @@ package com.btoddb.chronicle.plunkers.hdfs;
 
 /*
  * #%L
- * fast-persistent-queue
+ * chronicle
  * %%
  * Copyright (C) 2014 btoddb.com
  * %%
@@ -26,38 +26,40 @@ package com.btoddb.chronicle.plunkers.hdfs;
  * #L%
  */
 
-import com.btoddb.chronicle.ChronicleException;
-import com.btoddb.chronicle.Config;
-import com.btoddb.chronicle.serializers.EventSerializer;
+import com.btoddb.chronicle.serializers.AvroSerializerImpl;
+
+import java.io.IOException;
 
 
 /**
  *
  */
-public class HdfsFileFactoryImpl implements HdfsFileFactory {
-    private Config config;
-    private Class<EventSerializer> serializerType;
-    private Class<HdfsFile> hdfsFileType;
-
-    public HdfsFileFactoryImpl(Config config, String hdfsFileType, String serializerType) throws ClassNotFoundException {
-        this.config = config;
-        this.hdfsFileType = (Class<HdfsFile>) Class.forName(hdfsFileType);
-        this.serializerType = (Class<EventSerializer>) Class.forName(serializerType);
-    }
+public class HdfsAvroFileFactoryImpl implements HdfsFileFactory {
+    private AvroCodecFactory codecFactory;
+    private AvroSerializerImpl serializer;
 
     @Override
-    public HdfsFile createFile(String permFilename, String openFilename) throws ChronicleException {
-        try {
-            EventSerializer serializer = serializerType.newInstance();
-            serializer.init(config);
+    public HdfsFile createFile(String permFilename, String openFilename) throws IOException {
+        HdfsAvroFileImpl hdfsFile = new HdfsAvroFileImpl();
+        hdfsFile.setCodecFactory(codecFactory);
+        hdfsFile.setSerializer(serializer);
+        hdfsFile.init(permFilename, openFilename);
+        return hdfsFile;
+    }
 
-            HdfsFile hf = hdfsFileType.newInstance();
-            hf.init(permFilename, openFilename, serializer);
+    public AvroCodecFactory getCodecFactory() {
+        return codecFactory;
+    }
 
-            return hf;
-        }
-        catch (Exception e) {
-            throw new ChronicleException("exception while creating HdfsFile object", e);
-        }
+    public void setCodecFactory(AvroCodecFactory codecFactory) {
+        this.codecFactory = codecFactory;
+    }
+
+    public AvroSerializerImpl getSerializer() {
+        return serializer;
+    }
+
+    public void setSerializer(AvroSerializerImpl serializer) {
+        this.serializer = serializer;
     }
 }

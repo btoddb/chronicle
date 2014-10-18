@@ -1,4 +1,4 @@
-package com.btoddb.chronicle.serializers;
+package com.btoddb.chronicle.plunkers.hdfs;
 
 /*
  * #%L
@@ -26,39 +26,30 @@ package com.btoddb.chronicle.serializers;
  * #L%
  */
 
-import com.btoddb.chronicle.ChronicleException;
-import com.btoddb.chronicle.Event;
-
-import java.io.IOException;
-import java.io.OutputStream;
+import com.btoddb.chronicle.ChronicleComponentBaseImpl;
+import org.apache.avro.file.CodecFactory;
 
 
 /**
  *
  */
-public abstract class EventSerializerBaseImpl implements EventSerializer {
+public class SnappyCodecFactoryImpl implements AvroCodecFactory {
+    private String id;
 
+    // this constructor is to get around what seems to be a problem with SnakeYaml wanting a single arg constructor
+    public SnappyCodecFactoryImpl() {}
+    public SnappyCodecFactoryImpl(String dummy) {}
 
-    /**
-     * Throws {@link com.btoddb.chronicle.ChronicleException} claiming unsupported.
-     *
-     * @param outputStream
-     * @param event
-     * @return nothing
-     */
     @Override
-    public void serialize(OutputStream outputStream, Event event) throws IOException {
-        throw new ChronicleException("Unsupported operation for this serializer, " + getClass().getName());
+    public CodecFactory getInstance() {
+        return CodecFactory.snappyCodec();
     }
 
-    /**
-     * Throws {@link com.btoddb.chronicle.ChronicleException} claiming unsupported.
-     *
-     * @param event
-     * @return nothing
-     */
-    @Override
-    public Object convert(Event event) {
-        throw new ChronicleException("Unsupported operation for this serializer, " + getClass().getName());
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 }

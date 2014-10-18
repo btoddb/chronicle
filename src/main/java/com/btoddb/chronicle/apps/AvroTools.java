@@ -1,5 +1,31 @@
 package com.btoddb.chronicle.apps;
 
+/*
+ * #%L
+ * chronicle
+ * %%
+ * Copyright (C) 2014 btoddb.com
+ * %%
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ * #L%
+ */
+
 import com.btoddb.chronicle.plunkers.hdfs.StorableAvroEvent;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.Schema;
@@ -190,7 +216,7 @@ public class AvroTools {
 
     public static void main(String[] args) throws Exception {
         AvroTools verify = new AvroTools();
-        verify.echoFile(new Path("tmp/chronicle/hdfs/tburruss/2014-10-17/file.1413585543875.avro"));
+        verify.echoFile(new Path("tmp/chronicle/hdfs/tburruss/2014-10-18/file.1413607774715.avro"));
 //        verify.go("hdfs://n7cldhnn05.dcloud.starwave.com:9000/data/ESPN-ALERTS-NOTIFICATIONS-PROD/cls/logging/day=2014-08-05");
 //        verify.go("/btoddb/projects-disney/avro-defrag-mr/test-avro");
     }

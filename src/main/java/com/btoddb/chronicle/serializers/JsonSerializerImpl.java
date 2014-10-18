@@ -26,29 +26,79 @@ package com.btoddb.chronicle.serializers;
  * #L%
  */
 
+import com.btoddb.chronicle.ChronicleException;
 import com.btoddb.chronicle.Config;
 import com.btoddb.chronicle.Event;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.util.List;
 
 
 /**
  *
  */
 public class JsonSerializerImpl extends EventSerializerBaseImpl {
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
+
+    // this constructor is to get around what seems to be a problem with SnakeYaml wanting a single arg constructor
+    public JsonSerializerImpl() {}
+    public JsonSerializerImpl(String dummy) {}
 
     @Override
     public void serialize(OutputStream outStream, Event event) throws IOException {
-        outStream.write(config.getObjectMapper().writeValueAsBytes(event));
+        outStream.write(objectMapper.writeValueAsBytes(event));
         outStream.write('\n');
     }
 
-    public Config getConfig() {
-        return config;
+    public byte[] serialize(Event event) {
+        try {
+            return objectMapper.writeValueAsBytes(event);
+        }
+        catch (JsonProcessingException e) {
+            throw new ChronicleException("exception while serializing Event to byte array", e);
+        }
     }
 
-    public void setConfig(Config config) {
-        this.config = config;
+    public void serialize(PrintWriter printWriter, Event event) {
+        try {
+            objectMapper.writeValue(printWriter, event);
+        }
+        catch (IOException e) {
+            throw new ChronicleException("exception while serializing Event to PrintWriter", e);
+        }
+    }
+
+    public Event deserialize(BufferedInputStream reqInStream) {
+        try {
+            return objectMapper.readValue(reqInStream, Event.class);
+        }
+        catch (IOException e) {
+            throw new ChronicleException("exception while deserializing Event", e);
+        }
+    }
+
+    public Event deserialize(byte[] data) {
+        return deserialize(new BufferedInputStream(new ByteArrayInputStream(data)));
+    }
+
+    public Event deserialize(String data) {
+        return deserialize(data.getBytes());
+    }
+
+    public List<Event> deserializeList(BufferedInputStream reqInStream) {
+        try {
+            return objectMapper.readValue(reqInStream, new TypeReference<List<Event>>() {});
+        }
+        catch (IOException e) {
+            throw new ChronicleException("exception while deserializing Event list", e);
+        }
     }
 }

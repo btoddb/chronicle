@@ -38,7 +38,6 @@ import java.io.OutputStream;
  * object into a byte stream.
  */
 public interface EventSerializer {
-    void init(Config config);
 
     /**
      * Preferred method to stream directly to output stream.

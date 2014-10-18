@@ -26,7 +26,7 @@ package com.btoddb.chronicle;
  * #L%
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.btoddb.chronicle.serializers.JsonSerializerImpl;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,10 +46,11 @@ import java.util.Map;
 public class Config {
     private static Logger logger = LoggerFactory.getLogger(Config.class);
 
+    public static final JsonSerializerImpl eventSerializer = new JsonSerializerImpl();
+
     CatcherMetrics catcherMetrics;
     String configFilename;
     ErrorHandler errorHandler;
-    ObjectMapper objectMapper;
     String stopFile;
 
     Map<String, RouteAndSnoop> catchers = new HashMap<>();
@@ -59,7 +60,6 @@ public class Config {
 
     public Config() {
         catcherMetrics = new CatcherMetrics();
-        objectMapper = new ObjectMapper();
     }
 
     public static Config create(String configFilename) throws FileNotFoundException {
@@ -80,6 +80,10 @@ public class Config {
         }
 
         return config;
+    }
+
+    public JsonSerializerImpl getEventSerializer() {
+        return eventSerializer;
     }
 
     public String getConfigFilename() {
@@ -108,14 +112,6 @@ public class Config {
 
     public void setPlunkers(Map<String, PlunkerRunner> plunkerMap) {
         this.plunkers = plunkerMap;
-    }
-
-    public ObjectMapper getObjectMapper() {
-        return objectMapper;
-    }
-
-    public void setObjectMapper(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
     }
 
     public ErrorHandler getErrorHandler() {

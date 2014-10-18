@@ -1,5 +1,31 @@
 package com.btoddb.chronicle.plunkers.hdfs;
 
+/*
+ * #%L
+ * chronicle
+ * %%
+ * Copyright (C) 2014 btoddb.com
+ * %%
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ * #L%
+ */
+
 import com.btoddb.chronicle.Event;
 import com.btoddb.chronicle.serializers.EventSerializer;
 import org.apache.hadoop.conf.Configuration;
@@ -12,7 +38,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
 /**
- * Created by burrb009 on 10/16/14.
+ *
  */
 public abstract class HdfsFileBaseImpl implements HdfsFile {
     protected FSDataOutputStream outputStream;
@@ -27,10 +53,9 @@ public abstract class HdfsFileBaseImpl implements HdfsFile {
     protected abstract void writeInternal(Event event) throws IOException;
 
     @Override
-    public void init(String permFilename, String openFilename, EventSerializer serializer) throws IOException {
+    public void init(String permFilename, String openFilename) throws IOException {
         this.permFilename = permFilename;
         this.openFilename = openFilename;
-        this.serializer = serializer;
 
         Configuration conf = new Configuration();
         Path path = new Path(this.openFilename);
@@ -84,5 +109,13 @@ public abstract class HdfsFileBaseImpl implements HdfsFile {
     @Override
     public String getPermFilename() {
         return permFilename;
+    }
+
+    public EventSerializer getSerializer() {
+        return serializer;
+    }
+
+    public void setSerializer(EventSerializer serializer) {
+        this.serializer = serializer;
     }
 }

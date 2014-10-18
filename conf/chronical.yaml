@@ -1,7 +1,7 @@
+
 catchers:
   error-catcher:
     catcher: !!com.btoddb.chronicle.catchers.DirectCallCatcherImpl
-      id: error-catcher
 
   rest-catcher:
     catcher: !!com.btoddb.chronicle.catchers.RestCatcherImpl
@@ -13,14 +13,14 @@ catchers:
         overwrite: true
 
 routers:
-  rest-to-test: !!com.btoddb.chronicle.routers.OneToOneRouterImpl
+  rest-to-hdfs: !!com.btoddb.chronicle.routers.OneToOneRouterImpl
     catcher: rest-catcher
     plunker: hdfs-plunker-avro
   default-route: !!com.btoddb.chronicle.routers.ConditionalRouterImpl
     condition: headers[skipDefaultRouting] = .+ AND body = hello
     plunker: garbage-plunker
   error-route: !!com.btoddb.chronicle.routers.OneToOneRouterImpl
-    catcher: errors
+    catcher: error-catcher
     plunker: error-plunker
 
 #
@@ -38,17 +38,18 @@ plunkers:
       maxJournalDurationInMs: 30000
       flushPeriodInMs: 1000
       numberOfFlushWorkers: 4
-      journalDirectory: tmp/chronicle/file-plunker/journals
-      pagingDirectory: tmp/chronicle/file-plunker/pages
+      journalDirectory: tmp/chronicle/queues/file-plunker/journals
+      pagingDirectory: tmp/chronicle/queues/file-plunker/pages
 
   hdfs-plunker-text:
     plunker: !!com.btoddb.chronicle.plunkers.HdfsPlunkerImpl
-      pathPattern: hdfs://dn7dmphnn01.dcloud.starwave.com:9000/user/tburruss/chronicle/${header:customer}/${header:timestamp:date}
-#      pathPattern: tmp/chronicle/${header:customer}/${header:timestamp:date}
+#      pathPattern: hdfs://dn7dmphnn01.dcloud.starwave.com:9000/user/tburruss/chronicle/${header:customer}/${header:timestamp:date}
+      pathPattern: tmp/chronicle/hdfs/${header:customer}/${header:timestamp:date}
       permNamePattern: file.json
       openNamePattern: _file.json.tmp
-      fileType: com.btoddb.chronicle.plunkers.hdfs.HdfsTextFileImpl
-      serializerType: com.btoddb.chronicle.serializers.JsonSerializerImpl
+      fileFactory: !!com.btoddb.chronicle.plunkers.hdfs.HdfsTextFileFactoryImpl
+        serializer: !!com.btoddb.chronicle.serializers.JsonSerializerImpl
+
     fpq:
       maxTransactionSize: 2000
       maxMemorySegmentSizeInBytes: 10000
@@ -56,8 +57,8 @@ plunkers:
       maxJournalDurationInMs: 30000
       flushPeriodInMs: 1000
       numberOfFlushWorkers: 4
-      journalDirectory: tmp/chronicle/hdfs-plunker/journals
-      pagingDirectory: tmp/chronicle/hdfs-plunker/pages
+      journalDirectory: tmp/chronicle/queues/hdfs-plunker/journals
+      pagingDirectory: tmp/chronicle/queues/hdfs-plunker/pages
 
   hdfs-plunker-avro:
     plunker: !!com.btoddb.chronicle.plunkers.HdfsPlunkerImpl
@@ -65,8 +66,9 @@ plunkers:
       pathPattern: tmp/chronicle/hdfs/${header:customer}/${header:timestamp:date}
       permNamePattern: file.avro
       openNamePattern: _file.avro.tmp
-      fileType: com.btoddb.chronicle.plunkers.hdfs.HdfsAvroFileImpl
-      serializerType: com.btoddb.chronicle.serializers.AvroSerializerImpl
+      fileFactory: !!com.btoddb.chronicle.plunkers.hdfs.HdfsAvroFileFactoryImpl
+        serializer: !!com.btoddb.chronicle.serializers.AvroSerializerImpl
+        codecFactory: !!com.btoddb.chronicle.plunkers.hdfs.SnappyCodecFactoryImpl
     fpq:
       maxTransactionSize: 2000
       maxMemorySegmentSizeInBytes: 10000
@@ -74,8 +76,8 @@ plunkers:
       maxJournalDurationInMs: 30000
       flushPeriodInMs: 1000
       numberOfFlushWorkers: 4
-      journalDirectory: tmp/chronicle/hdfs-plunker/journals
-      pagingDirectory: tmp/chronicle/hdfs-plunker/pages
+      journalDirectory: tmp/chronicle/queues/hdfs-plunker/journals
+      pagingDirectory: tmp/chronicle/queues/hdfs-plunker/pages
 
   error-plunker:
     plunker: !!com.btoddb.chronicle.plunkers.FilePlunkerImpl
@@ -87,10 +89,10 @@ plunkers:
       maxJournalDurationInMs: 30000
       flushPeriodInMs: 1000
       numberOfFlushWorkers: 4
-      journalDirectory: tmp/chronicle/error-plunker/journals
-      pagingDirectory: tmp/chronicle/error-plunker/pages
+      journalDirectory: tmp/chronicle/queues/error-plunker/journals
+      pagingDirectory: tmp/chronicle/queues/error-plunker/pages
 
 errorHandler: !!com.btoddb.chronicle.ErrorHandlerImpl
-  catcher: errors
+  catcher: error-catcher
 
 stopFile: /tmp/chronicle.stop

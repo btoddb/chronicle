@@ -197,11 +197,11 @@ public class RestCatcherImpl extends CatcherBaseImpl {
             // check for list of events, or single event
             try {
                 if (!isJsonArray(reqInStream)) {
-                    Event event = config.getObjectMapper().readValue(reqInStream, Event.class);
+                    Event event = config.getEventSerializer().deserialize(reqInStream);
                     eventList = Collections.singletonList(event);
                 }
                 else {
-                    eventList = config.getObjectMapper().readValue(reqInStream, new TypeReference<List<Event>>() {});
+                    eventList = config.getEventSerializer().deserializeList(reqInStream);
                 }
             }
             catch (Exception e) {

@@ -27,8 +27,11 @@ package com.btoddb.chronicle.plunkers.hdfs;
  */
 
 
+import java.io.IOException;
+
+
 public interface HdfsFileFactory {
 
-    HdfsFile createFile(String permFilename, String openFilename);
+    HdfsFile createFile(String permFilename, String openFilename) throws IOException;
 
 }

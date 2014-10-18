@@ -98,10 +98,10 @@ public class FileTestUtils {
                     }
 
                     for (int i=0;i < targetEvents.length;i++) {
-                        Event event = config.getObjectMapper().readValue(lines.get(i), Event.class);
+                        Event event = config.getEventSerializer().deserialize(lines.get(i));
                         if (!targetEvents[i].equals(event)) {
                             errorDesc = "event: ";
-                            expected = config.getObjectMapper().writeValueAsString(targetEvents[i]);
+                            expected = new String(config.getEventSerializer().serialize(targetEvents[i]));
                             got = lines.get(i);
                             return false;
                         }
@@ -167,10 +167,10 @@ public class FileTestUtils {
                         try {
                             String line;
                             while (null != (line = reader.readLine())) {
-                                Event event = config.getObjectMapper().readValue(line, Event.class);
+                                Event event = config.getEventSerializer().deserialize(line);
                                 if (index < targetEvents.length && !targetEvents[index].equals(event)) {
                                     errorDesc = "event: ";
-                                    expected = config.getObjectMapper().writeValueAsString(targetEvents[index]);
+                                    expected = new String(config.getEventSerializer().serialize(targetEvents[index]));
                                     got = line;
                                     return false;
                                 }

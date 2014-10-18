@@ -1,4 +1,4 @@
-package com.btoddb.chronicle.serializers;
+package com.btoddb.chronicle.plunkers.hdfs;
 
 /*
  * #%L
@@ -26,39 +26,12 @@ package com.btoddb.chronicle.serializers;
  * #L%
  */
 
-import com.btoddb.chronicle.ChronicleException;
-import com.btoddb.chronicle.Event;
-
-import java.io.IOException;
-import java.io.OutputStream;
+import org.apache.avro.file.CodecFactory;
 
 
 /**
- *
+ * Created by burrb009 on 10/17/14.
  */
-public abstract class EventSerializerBaseImpl implements EventSerializer {
-
-
-    /**
-     * Throws {@link com.btoddb.chronicle.ChronicleException} claiming unsupported.
-     *
-     * @param outputStream
-     * @param event
-     * @return nothing
-     */
-    @Override
-    public void serialize(OutputStream outputStream, Event event) throws IOException {
-        throw new ChronicleException("Unsupported operation for this serializer, " + getClass().getName());
-    }
-
-    /**
-     * Throws {@link com.btoddb.chronicle.ChronicleException} claiming unsupported.
-     *
-     * @param event
-     * @return nothing
-     */
-    @Override
-    public Object convert(Event event) {
-        throw new ChronicleException("Unsupported operation for this serializer, " + getClass().getName());
-    }
+public interface AvroCodecFactory {
+    CodecFactory getInstance();
 }

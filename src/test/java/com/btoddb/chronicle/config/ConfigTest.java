@@ -42,9 +42,8 @@ public class ConfigTest {
         assertThat(config.getCatchers().keySet(), hasSize(2));
         assertThat(config.getCatchers(), hasKey("rest-catcher"));
         assertThat(config.getCatchers(), hasKey("error-catcher"));
-        assertThat(config.getPlunkers().keySet(), hasSize(3));
+        assertThat(config.getPlunkers().keySet(), hasSize(2));
         assertThat(config.getPlunkers(), hasKey("test-plunker"));
-        assertThat(config.getPlunkers(), hasKey("null-plunker"));
         assertThat(config.getPlunkers(), hasKey("error-plunker"));
     }
 }
