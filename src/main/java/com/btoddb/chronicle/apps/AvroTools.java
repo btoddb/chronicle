@@ -73,16 +73,19 @@ public class AvroTools {
 
         ReflectDatumReader<StorableAvroEvent> reader = new ReflectDatumReader<>(StorableAvroEvent.class);
         FileReader<StorableAvroEvent> fileReader = DataFileReader.openReader(input, reader);
-
+        long count = 0;
         try {
             Schema schema = fileReader.getSchema();
             for (StorableAvroEvent event : fileReader) {
+                count++;
                 System.out.println("event -> " + event.toString());
             }
         }
         finally {
             fileReader.close();
         }
+
+        System.out.println("count = " + count);
     }
 
 
@@ -216,7 +219,7 @@ public class AvroTools {
 
     public static void main(String[] args) throws Exception {
         AvroTools verify = new AvroTools();
-        verify.echoFile(new Path("tmp/chronicle/hdfs/tburruss/2014-10-18/file.1413607774715.avro"));
+        verify.echoFile(new Path("tmp/chronicle/hdfs/btoddb/2014-10-19/file.1413700673342.avro"));
 //        verify.go("hdfs://n7cldhnn05.dcloud.starwave.com:9000/data/ESPN-ALERTS-NOTIFICATIONS-PROD/cls/logging/day=2014-08-05");
 //        verify.go("/btoddb/projects-disney/avro-defrag-mr/test-avro");
     }
