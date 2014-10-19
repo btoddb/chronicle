@@ -58,6 +58,9 @@ public class PlunkerRunner implements ChronicleComponent, FpqBatchCallback {
 
         initializeComponent(plunker, id);
 
+        if (null == fpq.getQueueName()) {
+            fpq.setQueueName(id);
+        }
         fpq.init();
 
         batchReader = new FpqBatchReader();
