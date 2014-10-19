@@ -235,7 +235,7 @@ public class HdfsPlunkerImpl extends PlunkerBaseImpl {
                         @Override
                         public Thread newThread(Runnable r) {
                             Thread t = new Thread(r);
-                            t.setName("FPQ-HDFS-IdleTimeout");
+                            t.setName("Chronicle-HDFS-IdleTimeout");
                             return t;
                         }
                     }
@@ -249,7 +249,7 @@ public class HdfsPlunkerImpl extends PlunkerBaseImpl {
                         @Override
                         public Thread newThread(Runnable r) {
                             Thread t = new Thread(r);
-                            t.setName("FPQ-HDFS-Closer");
+                            t.setName("Chronicle-HDFS-Closer");
                             return t;
                         }
                     },
