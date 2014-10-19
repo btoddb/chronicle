@@ -52,7 +52,7 @@ plunkers:
 
     fpq:
       maxTransactionSize: 2000
-      maxMemorySegmentSizeInBytes: 10000
+      maxMemorySegmentSizeInBytes: 100000000
       maxJournalFileSize: 10000000
       maxJournalDurationInMs: 30000
       flushPeriodInMs: 1000
@@ -71,7 +71,7 @@ plunkers:
         codecFactory: !!com.btoddb.chronicle.plunkers.hdfs.SnappyCodecFactoryImpl
     fpq:
       maxTransactionSize: 2000
-      maxMemorySegmentSizeInBytes: 10000
+      maxMemorySegmentSizeInBytes: 100000000
       maxJournalFileSize: 10000000
       maxJournalDurationInMs: 30000
       flushPeriodInMs: 1000
@@ -84,7 +84,7 @@ plunkers:
       filePattern: tmp/${header:customer}/errors.out
     fpq:
       maxTransactionSize: 2000
-      maxMemorySegmentSizeInBytes: 10000
+      maxMemorySegmentSizeInBytes: 100000000
       maxJournalFileSize: 10000000
       maxJournalDurationInMs: 30000
       flushPeriodInMs: 1000
