@@ -48,7 +48,9 @@ public class Config {
 
     public static final JsonSerializerImpl eventSerializer = new JsonSerializerImpl();
 
+    ChronicleMetrics generalMetrics;
     CatcherMetrics catcherMetrics;
+    PlunkerMetrics plunkerMetrics;
     String configFilename;
     ErrorHandler errorHandler;
     String stopFile;
@@ -59,7 +61,9 @@ public class Config {
 
 
     public Config() {
+        generalMetrics = new ChronicleMetrics("main");
         catcherMetrics = new CatcherMetrics();
+        plunkerMetrics = new PlunkerMetrics();
     }
 
     public static Config create(String configFilename) throws FileNotFoundException {
@@ -128,6 +132,22 @@ public class Config {
 
     public void setCatcherMetrics(CatcherMetrics catcherMetrics) {
         this.catcherMetrics = catcherMetrics;
+    }
+
+    public PlunkerMetrics getPlunkerMetrics() {
+        return plunkerMetrics;
+    }
+
+    public void setPlunkerMetrics(PlunkerMetrics plunkerMetrics) {
+        this.plunkerMetrics = plunkerMetrics;
+    }
+
+    public ChronicleMetrics getGeneralMetrics() {
+        return generalMetrics;
+    }
+
+    public void setGeneralMetrics(ChronicleMetrics generalMetrics) {
+        this.generalMetrics = generalMetrics;
     }
 
     public String toString() {

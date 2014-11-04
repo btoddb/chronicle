@@ -1,8 +1,8 @@
-package com.btoddb.chronicle.apps;
+package com.btoddb.chronicle;
 
 /*
  * #%L
- * chronicle
+ * fast-persistent-queue
  * %%
  * Copyright (C) 2014 btoddb.com
  * %%
@@ -26,42 +26,34 @@ package com.btoddb.chronicle.apps;
  * #L%
  */
 
-import com.btoddb.chronicle.Event;
-
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import java.util.concurrent.TimeUnit;
 
 
 /**
- *
+ * Metrics specific to plunkers
  */
-public class RestClient {
+public class PlunkerMetricsContext {
+    private long batchStart;
+    private long batchEnd;
+    private int batchSize;
 
-
-
-    public void go() {
-        Client client = ClientBuilder.newClient();
-        long start = System.currentTimeMillis();
-        for (int i=0;i < 1000000;i++) {
-            if (0 == System.currentTimeMillis() % 1000) {
-                System.out.println("sent = " + i);
-            }
-            Event event = new Event("some-data-for-body")
-                    .withHeader("customer", "btoddb")
-                    .withHeader("foo", "bar");
-            Response resp = client.target("http://localhost:8083/v1")
-                    .request()
-                    .post(Entity.entity(event, MediaType.APPLICATION_JSON_TYPE));
-            resp.close();
-        }
+    public void startBatch() {
+        batchStart = System.nanoTime();
     }
 
-
-    public static void main(String[] args) {
-        new RestClient().go();
+    public void endBatch() {
+        batchEnd = System.nanoTime();
     }
 
+    public long getPerEventDuration() {
+        return TimeUnit.NANOSECONDS.toMicros((batchEnd - batchStart)/batchSize);
+    }
+
+    public int getBatchSize() {
+        return batchSize;
+    }
+
+    public void setBatchSize(int batchSize) {
+        this.batchSize = batchSize;
+    }
 }

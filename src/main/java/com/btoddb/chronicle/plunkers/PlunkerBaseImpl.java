@@ -27,6 +27,7 @@ package com.btoddb.chronicle.plunkers;
  */
 
 import com.btoddb.chronicle.ChronicleComponentBaseImpl;
+import com.btoddb.chronicle.ChronicleMetrics;
 import com.btoddb.chronicle.Config;
 import com.btoddb.chronicle.Event;
 import com.btoddb.chronicle.Plunker;
@@ -57,16 +58,22 @@ public abstract class PlunkerBaseImpl extends ChronicleComponentBaseImpl impleme
     @Override
     public void init(Config config) throws Exception {
         super.init(config);
+        getConfig().getPlunkerMetrics().initialize(getId());
     }
 
     @Override
     public final void handle(Collection<Event> events) throws Exception {
         try {
-            config.getCatcherMetrics().getRegistry().meter(getId()).mark(events.size());
+            getConfig().getPlunkerMetrics().setBatchSize(events.size());
+            getConfig().getPlunkerMetrics().markBatchStart(getId());
+
             handleInternal(events);
         }
         catch (Exception e) {
             Utils.logAndThrow(logger, String.format("exception while handling events in plunker, %s", getId()), e);
+        }
+        finally {
+            getConfig().getPlunkerMetrics().markBatchEnd(getId());
         }
     }
 }

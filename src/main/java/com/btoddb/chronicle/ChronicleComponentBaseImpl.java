@@ -28,6 +28,7 @@ package com.btoddb.chronicle;
 
 
 import com.codahale.metrics.Gauge;
+import com.codahale.metrics.MetricRegistry;
 
 import static com.codahale.metrics.MetricRegistry.name;
 
@@ -39,15 +40,13 @@ public abstract class ChronicleComponentBaseImpl implements ChronicleComponent {
     protected Config config;
     protected String id;
 
-    private String metricDomain;
     private String componentType;
 
     @Override
     public void init(Config config) throws Exception {
         this.config = config;
         determineComponentType();
-        metricDomain = getId();
-        config.getCatcherMetrics().getRegistry().register(name(metricDomain, "type"), new Gauge<String>() {
+        config.getGeneralMetrics().getRegistry().register(name(getId(), "type"), new Gauge<String>() {
             @Override
             public String getValue() {
                 return componentType;

@@ -47,6 +47,7 @@ public class PlunkerRunner implements ChronicleComponent, FpqBatchCallback {
 
     private Config config;
     private FpqBatchReader batchReader;
+    protected PlunkerMetrics metrics;
 
     private String id;
     private Plunker plunker;
@@ -55,6 +56,7 @@ public class PlunkerRunner implements ChronicleComponent, FpqBatchCallback {
     @Override
     public void init(Config config) throws Exception {
         this.config = config;
+        this.metrics = config.getPlunkerMetrics();
 
         initializeComponent(plunker, id);
 

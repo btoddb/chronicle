@@ -41,25 +41,6 @@ plunkers:
       journalDirectory: tmp/chronicle/queues/file-plunker/journals
       pagingDirectory: tmp/chronicle/queues/file-plunker/pages
 
-  hdfs-plunker-text:
-    plunker: !!com.btoddb.chronicle.plunkers.HdfsPlunkerImpl
-#      pathPattern: hdfs://dn7dmphnn01.dcloud.starwave.com:9000/user/tburruss/chronicle/${header:customer}/${header:timestamp:date}
-      pathPattern: tmp/chronicle/hdfs/${header:customer}/${header:timestamp:date}
-      permNamePattern: file.json
-      openNamePattern: _file.json.tmp
-      fileFactory: !!com.btoddb.chronicle.plunkers.hdfs.HdfsTextFileFactoryImpl
-        serializer: !!com.btoddb.chronicle.serializers.JsonSerializerImpl
-
-    fpq:
-      maxTransactionSize: 2000
-      maxMemorySegmentSizeInBytes: 100000000
-      maxJournalFileSize: 10000000
-      maxJournalDurationInMs: 30000
-      flushPeriodInMs: 1000
-      numberOfFlushWorkers: 4
-      journalDirectory: tmp/chronicle/queues/hdfs-plunker/journals
-      pagingDirectory: tmp/chronicle/queues/hdfs-plunker/pages
-
   hdfs-plunker-avro:
     plunker: !!com.btoddb.chronicle.plunkers.HdfsPlunkerImpl
 #      pathPattern: hdfs://dn7dmphnn01.dcloud.starwave.com:9000/user/tburruss/chronicle/${header:customer}/${header:timestamp:date}
@@ -71,13 +52,13 @@ plunkers:
         codecFactory: !!com.btoddb.chronicle.plunkers.hdfs.SnappyCodecFactoryImpl
     fpq:
       maxTransactionSize: 2000
-      maxMemorySegmentSizeInBytes: 100000000
+      maxMemorySegmentSizeInBytes: 3000000
       maxJournalFileSize: 10000000
       maxJournalDurationInMs: 30000
       flushPeriodInMs: 1000
       numberOfFlushWorkers: 4
-      journalDirectory: tmp/chronicle/queues/hdfs-plunker/journals
-      pagingDirectory: tmp/chronicle/queues/hdfs-plunker/pages
+      journalDirectory: tmp/chronicle/queues/hdfs-plunker-avro/journals
+      pagingDirectory: tmp/chronicle/queues/hdfs-plunker-avro/pages
 
   error-plunker:
     plunker: !!com.btoddb.chronicle.plunkers.FilePlunkerImpl

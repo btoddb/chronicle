@@ -7,7 +7,7 @@
     <version>0.0.1-SNAPSHOT</version>
 
     <name>chronicle</name>
-    <description>A mostly FIFO fast persistent queue</description>
+    <description>A way to move events fast and efficiently from A to B</description>
     <url>http://btoddb.github.io/chronicle/</url>
 
     <developers>
@@ -62,7 +62,7 @@
         <dependency>
             <groupId>com.btoddb</groupId>
             <artifactId>fast-persistent-queue</artifactId>
-            <version>0.0.13-SNAPSHOT</version>
+            <version>0.0.14-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -114,6 +114,16 @@
             <artifactId>joda-time</artifactId>
             <version>2.5</version>
         </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${fasterxml-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${fasterxml-version}</version>
+        </dependency>
 
         <!-- Chronical - REST client app -->
         <dependency>
@@ -138,11 +148,6 @@
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-jmx</artifactId>
             <version>${jetty-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>${fasterxml-version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.flume</groupId>
@@ -292,8 +297,8 @@
                         <compilerArgument>-Xlint:all</compilerArgument>
                         <showDeprecation>true</showDeprecation>
                         <showWarnings>true</showWarnings>
-                        <source>1.7</source>
-                        <target>1.7</target>
+                        <source>1.8</source>
+                        <target>1.8</target>
                     </configuration>
                 </plugin>
             </plugins>

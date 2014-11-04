@@ -46,8 +46,7 @@ public class CatcherMetrics extends ChronicleMetrics {
 
 
     public CatcherMetrics() {
-        super();
-        reporter.start();
+        super("catchers");
     }
 
     public void initialize(String componentId) {

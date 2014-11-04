@@ -31,14 +31,16 @@ import com.codahale.metrics.MetricRegistry;
 
 
 /**
- * Created by burrb009 on 10/4/14.
+ *
  */
 public class ChronicleMetrics {
+    protected String baseDomain = "com.btoddb.chronicle";
     protected MetricRegistry registry = new MetricRegistry();
     protected JmxReporter reporter;
 
-    public ChronicleMetrics() {
-        reporter = JmxReporter.forRegistry(registry).inDomain("fpq.chronicle").build();
+    public ChronicleMetrics(String domain) {
+        reporter = JmxReporter.forRegistry(registry).inDomain(baseDomain + "." + domain).build();
+        reporter.start();
     }
 
     public MetricRegistry getRegistry() {

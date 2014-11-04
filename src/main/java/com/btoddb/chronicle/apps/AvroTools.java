@@ -88,8 +88,6 @@ public class AvroTools {
         System.out.println("count = " + count);
     }
 
-
-
     private void testFileAndFix(Path inFile) throws IOException {
         FileContext context = FileContext.getFileContext(hdfsConfig);
         AvroFSInput input = new AvroFSInput(context, inFile);

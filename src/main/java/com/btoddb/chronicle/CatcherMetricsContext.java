@@ -33,16 +33,11 @@ import java.util.concurrent.TimeUnit;
  * Metrics specific to catchers.
  */
 public class CatcherMetricsContext {
-//    private String componentId;
-
     private long batchStart;
     private long batchEnd;
     private int batchSize;
 
-    public void startBatch(
-//            String componentId
-    ) {
-//        this.componentId = componentId;
+    public void startBatch() {
         batchStart = System.nanoTime();
     }
 
@@ -61,8 +56,4 @@ public class CatcherMetricsContext {
     public void setBatchSize(int batchSize) {
         this.batchSize = batchSize;
     }
-
-//    public String getComponentId() {
-//        return componentId;
-//    }
 }
