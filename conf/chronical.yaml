@@ -13,9 +13,12 @@ catchers:
         overwrite: true
 
 routers:
-  rest-to-hdfs: !!com.btoddb.chronicle.routers.OneToOneRouterImpl
+  rest-to-dn7: !!com.btoddb.chronicle.routers.OneToOneRouterImpl
     catcher: rest-catcher
-    plunker: hdfs-plunker-avro
+    plunker: rest-plunker-dn7
+#  rest-to-hdfs: !!com.btoddb.chronicle.routers.OneToOneRouterImpl
+#    catcher: rest-catcher
+#    plunker: hdfs-plunker-avro
   default-route: !!com.btoddb.chronicle.routers.ConditionalRouterImpl
     condition: headers[skipDefaultRouting] = .+ AND body = hello
     plunker: garbage-plunker
@@ -50,6 +53,19 @@ plunkers:
       fileFactory: !!com.btoddb.chronicle.plunkers.hdfs.HdfsAvroFileFactoryImpl
         serializer: !!com.btoddb.chronicle.serializers.AvroSerializerImpl
         codecFactory: !!com.btoddb.chronicle.plunkers.hdfs.SnappyCodecFactoryImpl
+    fpq:
+      maxTransactionSize: 2000
+      maxMemorySegmentSizeInBytes: 3000000
+      maxJournalFileSize: 10000000
+      maxJournalDurationInMs: 30000
+      flushPeriodInMs: 1000
+      numberOfFlushWorkers: 4
+      journalDirectory: tmp/chronicle/queues/hdfs-plunker-avro/journals
+      pagingDirectory: tmp/chronicle/queues/hdfs-plunker-avro/pages
+
+  rest-plunker-dn7:
+    plunker: !!com.btoddb.chronicle.plunkers.RestClientPlunkerImpl
+      url: http://dn7dmpflume01:4192/v2/events
     fpq:
       maxTransactionSize: 2000
       maxMemorySegmentSizeInBytes: 3000000
