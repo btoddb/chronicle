@@ -232,7 +232,7 @@ public class Chronicle implements Runnable {
         // (Note: if you use kill -9 *cannot* be intercepted)
 
         System.out.println();
-        System.out.println("  Chronicle can be killed by touching the file, '" + config.getStopFile() + "'");
+        System.out.println("  Chronicle can be killed by touching the file, 'touch " + config.getStopFile() + "'");
         System.out.println();
 
         chronicle.waitUntilStopped();

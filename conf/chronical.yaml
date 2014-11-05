@@ -73,8 +73,8 @@ plunkers:
       maxJournalDurationInMs: 30000
       flushPeriodInMs: 1000
       numberOfFlushWorkers: 4
-      journalDirectory: tmp/chronicle/queues/hdfs-plunker-avro/journals
-      pagingDirectory: tmp/chronicle/queues/hdfs-plunker-avro/pages
+      journalDirectory: tmp/chronicle/queues/rest-plunker-dn7/journals
+      pagingDirectory: tmp/chronicle/queues/rest-plunker-dn7/pages
 
   error-plunker:
     plunker: !!com.btoddb.chronicle.plunkers.FilePlunkerImpl
