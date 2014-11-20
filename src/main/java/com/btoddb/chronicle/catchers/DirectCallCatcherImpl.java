@@ -42,8 +42,10 @@ public class DirectCallCatcherImpl extends CatcherBaseImpl implements Catcher, D
     private static final Logger logger = LoggerFactory.getLogger(DirectCallCatcherImpl.class);
 
 
-    // this constructor is to get around what seems to be a problem with SnakeYaml wanting a single arg constructor
     public DirectCallCatcherImpl() {}
+
+    // this constructor is to get around what seems to be a problem with SnakeYaml wanting a single arg constructor
+    // when there are no properties for the object
     public DirectCallCatcherImpl(String dummy) {}
 
     @Override

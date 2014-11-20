@@ -18,6 +18,10 @@ public class RestClientPlunkerImpl extends PlunkerBaseImpl {
     private String url;
     private Client client;
 
+    public RestClientPlunkerImpl() {
+        super(null);
+    }
+
     @Override
     public void init(Config config) throws Exception {
         super.init(config);

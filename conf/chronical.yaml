@@ -7,15 +7,19 @@ catchers:
     catcher: !!com.btoddb.chronicle.catchers.RestCatcherImpl
       bind: 0.0.0.0
       port: 8083
+      maxBatchSize: 2000
     snoopers:
       timestamp-snooper: !!com.btoddb.chronicle.snoopers.TimestampSnooper
         headerName: timestamp
         overwrite: true
 
 routers:
-  rest-to-dn7: !!com.btoddb.chronicle.routers.OneToOneRouterImpl
+  rest-to-garbage: !!com.btoddb.chronicle.routers.OneToOneRouterImpl
     catcher: rest-catcher
-    plunker: rest-plunker-dn7
+    plunker: garbage-plunker
+#  rest-to-dev: !!com.btoddb.chronicle.routers.OneToOneRouterImpl
+#    catcher: rest-catcher
+#    plunker: rest-plunker-dev
 #  rest-to-hdfs: !!com.btoddb.chronicle.routers.OneToOneRouterImpl
 #    catcher: rest-catcher
 #    plunker: hdfs-plunker-avro
@@ -63,7 +67,7 @@ plunkers:
       journalDirectory: tmp/chronicle/queues/hdfs-plunker-avro/journals
       pagingDirectory: tmp/chronicle/queues/hdfs-plunker-avro/pages
 
-  rest-plunker-dn7:
+  rest-plunker-dev:
     plunker: !!com.btoddb.chronicle.plunkers.RestClientPlunkerImpl
       url: http://dn7dmpflume01:4192/v2/events
     fpq:
@@ -73,8 +77,8 @@ plunkers:
       maxJournalDurationInMs: 30000
       flushPeriodInMs: 1000
       numberOfFlushWorkers: 4
-      journalDirectory: tmp/chronicle/queues/rest-plunker-dn7/journals
-      pagingDirectory: tmp/chronicle/queues/rest-plunker-dn7/pages
+      journalDirectory: tmp/chronicle/queues/rest-plunker-dev/journals
+      pagingDirectory: tmp/chronicle/queues/rest-plunker-dev/pages
 
   error-plunker:
     plunker: !!com.btoddb.chronicle.plunkers.FilePlunkerImpl
@@ -88,6 +92,18 @@ plunkers:
       numberOfFlushWorkers: 4
       journalDirectory: tmp/chronicle/queues/error-plunker/journals
       pagingDirectory: tmp/chronicle/queues/error-plunker/pages
+
+  garbage-plunker:
+    plunker: !!com.btoddb.chronicle.plunkers.GarbagePlunkerImpl
+    fpq:
+      maxTransactionSize: 2000
+      maxMemorySegmentSizeInBytes: 100000000
+      maxJournalFileSize: 10000000
+      maxJournalDurationInMs: 30000
+      flushPeriodInMs: 1000
+      numberOfFlushWorkers: 4
+      journalDirectory: tmp/chronicle/queues/garbage-plunker/journals
+      pagingDirectory: tmp/chronicle/queues/garbage-plunker/pages
 
 errorHandler: !!com.btoddb.chronicle.ErrorHandlerImpl
   catcher: error-catcher

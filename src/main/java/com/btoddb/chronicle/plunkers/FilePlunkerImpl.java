@@ -62,6 +62,10 @@ public class FilePlunkerImpl extends PlunkerBaseImpl {
 
     Cache<String, PrintWriter> printWriterCache;
 
+    public FilePlunkerImpl() {
+        super(null);
+    }
+
     @Override
     public void init(Config config) throws Exception {
         super.init(config);

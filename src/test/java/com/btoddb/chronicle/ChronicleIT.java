@@ -89,7 +89,7 @@ public class ChronicleIT {
                 .withHeader("foo", "bar");
 
         Client client = ClientBuilder.newClient();
-        Response resp = client.target("http://localhost:8083/v1")
+        Response resp = client.target("http://localhost:8083/v1/events")
                 .request()
                 .post(Entity.entity(event, MediaType.APPLICATION_JSON_TYPE));
 
@@ -114,7 +114,7 @@ public class ChronicleIT {
         }
 
         Client client = ClientBuilder.newClient();
-        Response resp = client.target("http://localhost:8083/v1")
+        Response resp = client.target("http://localhost:8083/v1/events")
                 .request()
                 .post(Entity.entity(eventList, MediaType.APPLICATION_JSON_TYPE));
 

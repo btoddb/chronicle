@@ -88,6 +88,10 @@ public class HdfsPlunkerImpl extends PlunkerBaseImpl {
     private HdfsFileFactory fileFactory;
 
 
+    public HdfsPlunkerImpl() {
+        super(null);
+    }
+
     @Override
     public void init(Config config) throws Exception {
         super.init(config);

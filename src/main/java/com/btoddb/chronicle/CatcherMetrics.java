@@ -68,8 +68,10 @@ public class CatcherMetrics extends ChronicleMetrics {
 
     private void updateMetrics(String componentId, CatcherMetricsContext context) {
         if (null != context) {
-            registry.timer(name(componentId, "event-rate")).update(context.getPerEventDuration(), TimeUnit.MICROSECONDS);
-            registry.histogram(name(componentId, "batch-size")).update(context.getBatchSize());
+            if (0 < context.getBatchSize()) {
+                registry.timer(name(componentId, "event-rate")).update(context.getPerEventDuration(), TimeUnit.MICROSECONDS);
+                registry.histogram(name(componentId, "batch-size")).update(context.getBatchSize());
+            }
         }
         else {
             registry.timer(name(componentId, "event-rate"));

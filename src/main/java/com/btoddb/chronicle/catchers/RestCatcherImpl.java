@@ -38,6 +38,7 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.DefaultHandler;
+import org.eclipse.jetty.server.handler.ErrorHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.StatisticsHandler;
 import org.eclipse.jetty.util.log.Log;
@@ -90,25 +91,36 @@ public class RestCatcherImpl extends CatcherBaseImpl {
         server.addBean(mbContainer);
         server.addBean(Log.getLogger(RestCatcherImpl.class));
 
+        // bind connector to IP and port
         ServerConnector connector = new ServerConnector(server);
         connector.setHost(bind);
         connector.setPort(port);
+        server.setConnectors(new Connector[] {connector});
 
-        HandlerCollection handlers = new HandlerCollection();
-        handlers.addHandler(new RequestHandler());
-        handlers.addHandler(new DefaultHandler());
-
+        // setup handlers/stats for the context "/v1/events"
+        HandlerCollection v1EventHandlers = new HandlerCollection();
+        v1EventHandlers.addHandler(new RequestHandler());
+        v1EventHandlers.addHandler(new DefaultHandler());
         StatisticsHandler statsHandler = new StatisticsHandler();
-        statsHandler.setHandler(handlers);
+        statsHandler.setHandler(v1EventHandlers);
 
         ContextHandler context = new ContextHandler();
         context.setDisplayName("Chronicle-RestV1");
-        context.setContextPath("/v1");
-        context.setHandler(statsHandler);
+        context.setContextPath("/v1/events");
         context.setAllowNullPathInfo(true); // to avoid redirect on POST
+        context.setHandler(statsHandler);
 
-        server.setConnectors(new Connector[] {connector});
-        server.setHandler(context);
+        // setup handlers/contexts for the overall server
+        HandlerCollection serverHandlers = new HandlerCollection();
+        serverHandlers.addHandler(context);
+        server.setHandler(serverHandlers);
+        server.addBean(new ErrorHandler() {
+            @Override
+            public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException {
+                logger.warn(String.format("RESTv1 response code = %d : %s : forward-for=%s : %s", baseRequest.getResponse().getStatus(), baseRequest.getRemoteAddr(), baseRequest.getHeader("X-Forwarded-For"), baseRequest.getRequestURL()));
+                super.handle(target, baseRequest, request, response);
+            }
+        });
 
         try {
             server.start();
@@ -192,6 +204,8 @@ public class RestCatcherImpl extends CatcherBaseImpl {
 
         private void doIt(Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException {
             List<Event> eventList;
+
+            baseRequest.setHandled(true);
             BufferedInputStream reqInStream = new BufferedInputStream(request.getInputStream());
 
             // check for list of events, or single event
@@ -227,8 +241,6 @@ public class RestCatcherImpl extends CatcherBaseImpl {
                 response.getWriter().print(e.getMessage());
                 return;
             }
-
-            baseRequest.setHandled(true);
 
             response.setStatus(HttpServletResponse.SC_OK);
             response.setContentType("application/json");

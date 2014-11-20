@@ -54,6 +54,9 @@ public abstract class PlunkerBaseImpl extends ChronicleComponentBaseImpl impleme
      */
     protected abstract void handleInternal(Collection<Event> events) throws Exception;
 
+    // this constructor is to get around what seems to be a problem with SnakeYaml wanting a single arg constructor
+    // when there are no properties for the object
+    public PlunkerBaseImpl(String dummy) {}
 
     @Override
     public void init(Config config) throws Exception {

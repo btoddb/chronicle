@@ -1,6 +1,6 @@
 required
 
-- 
+- need complete semantic checking of config - if plunker isn't specified in config, doesn't warn, error, or otherwise care
 
 desired
 

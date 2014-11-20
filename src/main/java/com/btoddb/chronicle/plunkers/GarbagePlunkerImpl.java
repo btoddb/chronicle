@@ -35,6 +35,12 @@ import java.util.Collection;
  *
  */
 public class GarbagePlunkerImpl extends PlunkerBaseImpl {
+    // this constructor is to get around what seems to be a problem with SnakeYaml wanting
+    // a single arg constructor when there are no properties for the object
+    public GarbagePlunkerImpl(String dummy) {
+        super(dummy);
+    }
+
     @Override
     public void handleInternal(Collection<Event> events) throws Exception {
         // do nothing - eat the events

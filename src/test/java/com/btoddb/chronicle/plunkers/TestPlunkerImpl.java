@@ -43,6 +43,10 @@ public class TestPlunkerImpl extends PlunkerBaseImpl {
 
     private List<Event> eventList = new LinkedList<Event>();
 
+    public TestPlunkerImpl() {
+        super(null);
+    }
+
     @Override
     public void init(Config config) throws Exception {
         super.init(config);

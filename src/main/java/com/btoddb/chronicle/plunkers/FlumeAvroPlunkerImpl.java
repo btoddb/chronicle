@@ -47,6 +47,9 @@ public class FlumeAvroPlunkerImpl extends PlunkerBaseImpl {
     private int reconnectPeriod = 120;
 
 
+    public FlumeAvroPlunkerImpl() {
+        super(null);
+    }
 
     @Override
     protected void handleInternal(Collection<Event> events) throws Exception {
