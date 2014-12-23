@@ -62,7 +62,7 @@
         <dependency>
             <groupId>com.btoddb</groupId>
             <artifactId>fast-persistent-queue</artifactId>
-            <version>0.0.14-SNAPSHOT</version>
+            <version>0.0.14</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
